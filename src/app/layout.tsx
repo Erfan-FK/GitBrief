@@ -37,16 +37,40 @@ const umamiId = process.env.NEXT_PUBLIC_UMAMI_ID;
 const umamiSrc =
   process.env.NEXT_PUBLIC_UMAMI_SRC ?? "https://cloud.umami.is/script.js";
 
-export default function RootLayout({
+/** Star count at build, revalidated 1h — 01 §3. Null until repo is public. */
+async function fetchStars(): Promise<number | null> {
+  try {
+    const res = await fetch("https://api.github.com/repos/Erfan-FK/GitBrief", {
+      headers: { Accept: "application/vnd.github+json" },
+      next: { revalidate: 3600 },
+    });
+    if (!res.ok) return null;
+    const data: unknown = await res.json();
+    if (
+      typeof data === "object" &&
+      data !== null &&
+      "stargazers_count" in data &&
+      typeof data.stargazers_count === "number"
+    ) {
+      return data.stargazers_count;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+export default async function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
+  const stars = await fetchStars();
   return (
     <html lang="en" suppressHydrationWarning>
       <body
         className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
-          <Header />
+          <Header stars={stars} />
           <main>{children}</main>
           <Footer />
         </ThemeProvider>

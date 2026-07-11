@@ -19,7 +19,7 @@ export function Footer() {
 
         <nav aria-label="Footer" className="flex flex-col gap-2 text-sm">
           <a
-            href="https://github.com/gitbrief"
+            href="https://github.com/Erfan-FK/GitBrief"
             target="_blank"
             rel="noopener noreferrer"
             className="w-fit text-muted-foreground transition-colors hover:text-foreground"
