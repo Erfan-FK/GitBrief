@@ -1,22 +1,38 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
 @custom-variant dark (&:where(.dark, .dark *));
 
-/* Design tokens — plan/01-DESIGN-SPEC.md §1 */
+/* Design tokens — plan/01-DESIGN-SPEC.md §1. Brand values are authoritative;
+   shadcn semantic vars are mapped onto the same palette. */
 :root {
   --background: #faf9f7;
   --foreground: #1a1523;
   --primary: #6d4aff;
   --primary-hover: #5b38f0;
   --primary-soft: #ede9fe;
+  --primary-foreground: #ffffff;
   --muted-foreground: #6e6785;
   --border: #e7e4ef;
   --card: #ffffff;
+  --card-foreground: #1a1523;
+  --popover: #ffffff;
+  --popover-foreground: #1a1523;
+  --secondary: #ede9fe;
+  --secondary-foreground: #1a1523;
+  --muted: #ede9fe;
+  --accent: #ede9fe;
+  --accent-foreground: #1a1523;
   --success: #1fa97c;
   --warning: #d97706;
   --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
   --code-bg: #14111d;
+  --input: #e7e4ef;
+  --ring: #6d4aff;
 
+  --radius: 12px;
   --radius-sm: 8px;
   --radius-md: 12px;
   --radius-lg: 16px;
@@ -30,10 +46,21 @@
   --background: #0f0d17;
   --foreground: #efedf6;
   --card: #171321;
+  --card-foreground: #efedf6;
+  --popover: #171321;
+  --popover-foreground: #efedf6;
   --border: #262133;
   --primary: #6d4aff;
   --primary-soft: #2a2344;
+  --primary-foreground: #ffffff;
+  --secondary: #2a2344;
+  --secondary-foreground: #efedf6;
+  --muted: #2a2344;
+  --accent: #2a2344;
+  --accent-foreground: #efedf6;
   --muted-foreground: #9a93b0;
+  --input: #262133;
+  --ring: #6d4aff;
 }
 
 @theme inline {
@@ -42,13 +69,25 @@
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-soft: var(--primary-soft);
+  --color-primary-foreground: var(--primary-foreground);
   --color-muted-foreground: var(--muted-foreground);
   --color-border: var(--border);
   --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
   --color-success: var(--success);
   --color-warning: var(--warning);
   --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
   --color-code-bg: var(--code-bg);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
 
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   --font-display: var(--font-space-grotesk), var(--font-inter), ui-sans-serif,
@@ -74,15 +113,60 @@ html {
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
   font-family: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   font-size: 1rem;
   line-height: 1.6;
+}
+
+/* Invalid-input shake — 01 §4.4; skipped for reduced motion */
+@keyframes gb-shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-4px); }
+  40%, 80% { transform: translateX(4px); }
+}
+.gb-shake {
+  animation: gb-shake 250ms ease-in-out;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gb-shake {
+    animation: none;
+  }
+}
+
+/* Scroll-cue bob — 01 §4.5 */
+@keyframes gb-bob {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(8px); }
+}
+.gb-bob {
+  animation: gb-bob 2.4s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gb-bob {
+    animation: none;
+  }
+}
+
+/* Shiki panels keep --code-bg (01 §1.1), not the theme's own bg */
+.gb-shiki pre {
+  background: transparent !important;
+  margin: 0;
+}
+.gb-shiki code {
+  font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
 }
 
 /* Focus visible everywhere — 01 §14 */
 :focus-visible {
   outline: 2px solid var(--primary);
   outline-offset: 2px;
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
