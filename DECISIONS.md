@@ -7,3 +7,8 @@ Deviations from plan/00–04 specs, one line each with reason.
 - M1: added `NEXT_PUBLIC_UMAMI_SRC` env (not in 00 §env list) — self-hosted Umami script URL unknown until deployed; defaults to Umami cloud.
 - M1: Sentry init gated on DSN env vars so local/CI builds work without secrets; source-map upload only with `SENTRY_AUTH_TOKEN`.
 - M1: placeholder inline-SVG logo mark until asset L2 (04) is produced.
+- M1/M2: Vercel hosting dropped per user — hosting decided later; deploy DoD items deferred.
+- M2: shadcn v4 generates Base UI (not Radix) components — accordion/sheet/tabs APIs adapted accordingly.
+- M2: `/api/repos/resolve` uses unauthenticated GitHub API (60 req/h/IP); GitHub App token lands in M3, so 404 can't distinguish private from missing repo yet — both show not-found copy.
+- M2: Playwright uses system Chrome (`channel: "chrome"`) — playwright.dev browser CDN geo-blocked on dev machine.
+- M2: live example, gallery and score card use fixtures until M4/M5 (allowed by M2 DoD).
