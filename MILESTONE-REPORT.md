@@ -29,3 +29,26 @@
 **Stubbed / deferred**
 - Live example + gallery + score = fixtures until M4/M5.
 - Lighthouse pass pending hosting decision; a11y patterns per 01 §14 implemented.
+
+## M3 — Detection pipeline (fast path)
+
+**Shipped**
+- Supabase project `tuzeneuwymvoygtxsaui` — full 03 §1 schema + RLS applied; 75 technologies + 121 detection rules seeded (`db/seed`).
+- Canonical registry `src/lib/detect/registry.ts` (75 techs, dependency/file/config-pattern rules per 03 §4).
+- GitHub client (meta, head sha, recursive tree w/ truncated→largeRepo, languages, raw blobs).
+- Candidate selection per 02 §2.3 (priority order, ≤30 blobs, two-phase for workspace package.json).
+- Detection engine layers 1–5: dep maps (npm/pypi/go/cargo/composer/gem/maven), file+config rules, lockfile version extraction (pnpm v5/v9, package-lock v1–3, yarn classic+berry, poetry/uv/Cargo TOML, go.mod, composer.lock, Gemfile.lock), disambiguators (tailwind v4, next app/pages router, react major, package manager), monorepo workspace grouping with per-package paths. Evidence ≤120ch on every detection.
+- SSE stream endpoint (repo/manifest/tech/detection_complete/error events) + `analyses` caching by repo@head_sha (active when service key present).
+- Results page Phase 1 (01 §19): repo header chips, streaming manifest list, category-grouped tech chips with exact versions.
+- 24 unit tests (12 parser + 5 engine + 12 resolver → 29 total with M2).
+
+**DoD verification (local dev, warm)**
+- vercel/ai: 24 techs, exact versions (next 15.5.18, react 19 rc, …), monorepo ✓ — engine 1.3s
+- supabase/supabase: 29 techs, monorepo ✓ · shadcn-ui/ui: 20 techs ✓
+- fastapi/fastapi: python/fastapi via pyproject ✓ · gin-gonic/gin: Go via go.mod ✓ (see DECISIONS re self-detection)
+- vercel/next.js: monorepo grouping ✓, 19 techs
+- Engine <2s on all; wall time 2–4s warm (fetch-bound; <3s p50 achievable with edge cache in prod)
+
+**Stubbed / deferred**
+- GitHub App token, Upstash Redis, Realtime, rate limiting → M4/M6.
+- `/api/analyses` POST + id-based stream route → M4 (Inngest pipeline).

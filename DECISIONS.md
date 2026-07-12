@@ -12,3 +12,8 @@ Deviations from plan/00–04 specs, one line each with reason.
 - M2: `/api/repos/resolve` uses unauthenticated GitHub API (60 req/h/IP); GitHub App token lands in M3, so 404 can't distinguish private from missing repo yet — both show not-found copy.
 - M2: Playwright uses system Chrome (`channel: "chrome"`) — playwright.dev browser CDN geo-blocked on dev machine.
 - M2: live example, gallery and score card use fixtures until M4/M5 (allowed by M2 DoD).
+- M3: detection rules live in `src/lib/detect/registry.ts` (canonical) and are seeded INTO the DB — the fast path reads the in-memory registry, not the DB, for <3s latency; 02 §3 rule semantics unchanged.
+- M3: GitHub access via optional `GITHUB_TOKEN` PAT (App installation token deferred); blob contents via raw.githubusercontent (no API rate cost). 404 private/missing indistinguishable until App token.
+- M3: SSE endpoint is `/api/analyses/stream?owner=&repo=` — id-based route per 02 §1 arrives with the M4 Inngest pipeline; event names/shapes match spec.
+- M3: Upstash Redis caching skipped (no creds); Next fetch-cache covers tree/meta TTLs. Analyses row caching active only when `SUPABASE_SERVICE_ROLE_KEY` set.
+- M3: gin-gonic/gin detects as Go-only — the gin REPO doesn't depend on gin; library self-detection is out of detection scope (facts only).
