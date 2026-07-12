@@ -5,11 +5,15 @@ import { useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
 import { Check, GitBranch, Star } from "lucide-react";
 import type {
+  AnalysisCompleteEvent,
+  BundleFileEvent,
   DetectionCompleteEvent,
   ErrorEvent,
   RepoEvent,
+  ScoreEvent,
   TechEvent,
 } from "@/lib/analyze/events";
+import { BundleView } from "@/components/results/bundle-view";
 import { CATEGORY_ORDER } from "@/lib/detect/types";
 import type { TechCategory } from "@/lib/detect/registry";
 
@@ -27,6 +31,10 @@ export function DetectionPanel({
   const [techs, setTechs] = useState<TechEvent[]>([]);
   const [complete, setComplete] = useState<DetectionCompleteEvent | null>(null);
   const [error, setError] = useState<ErrorEvent | null>(null);
+  const [bundleFiles, setBundleFiles] = useState<BundleFileEvent[]>([]);
+  const [score, setScore] = useState<ScoreEvent | null>(null);
+  const [analysisComplete, setAnalysisComplete] =
+    useState<AnalysisCompleteEvent | null>(null);
 
   useEffect(() => {
     const source = new EventSource(
@@ -50,19 +58,29 @@ export function DetectionPanel({
         prev.some((t) => t.slug === d.slug) ? prev : [...prev, d],
       ),
     );
-    on<DetectionCompleteEvent>("detection_complete", (d) => {
-      setComplete(d);
+    on<DetectionCompleteEvent>("detection_complete", setComplete);
+    on<BundleFileEvent>("file", (d) =>
+      setBundleFiles((prev) => [...prev.filter((f) => f.path !== d.path), d]),
+    );
+    on<ScoreEvent>("score", setScore);
+    let finished = false;
+    on<AnalysisCompleteEvent>("analysis_complete", (d) => {
+      finished = true;
+      setAnalysisComplete(d);
       source.close();
     });
     on<ErrorEvent>("error", (d) => {
+      finished = true;
       setError(d);
       source.close();
     });
     source.onerror = () => {
       source.close();
-      setError((prev) =>
-        prev ?? { code: "internal", message: "Connection lost — reload to retry." },
-      );
+      if (!finished) {
+        setError((prev) =>
+          prev ?? { code: "internal", message: "Connection lost — reload to retry." },
+        );
+      }
     };
     return () => source.close();
   }, [owner, repo]);
@@ -82,6 +100,7 @@ export function DetectionPanel({
   }, [techs]);
 
   return (
+    <>
     <div className="mx-auto w-full max-w-[760px] px-6">
       {/* Repo header — instant */}
       <motion.div
@@ -196,12 +215,25 @@ export function DetectionPanel({
         )}
       </div>
 
-      {complete && !error && (
-        <p className="mt-6 text-center text-sm text-muted-foreground">
-          Bundle generation (CLAUDE.md, AGENTS.md, skills) ships in the next
-          milestone.
+      {complete && !error && bundleFiles.length === 0 && (
+        <p
+          className="mt-6 text-center font-mono text-sm text-muted-foreground"
+          aria-live="polite"
+        >
+          Briefing… generating your bundle
         </p>
       )}
     </div>
+
+    {bundleFiles.length > 0 && !error && (
+      <BundleView
+        owner={owner}
+        repo={repo}
+        files={bundleFiles}
+        score={score}
+        complete={analysisComplete}
+      />
+    )}
+    </>
   );
 }
