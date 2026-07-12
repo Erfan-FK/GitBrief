@@ -5,8 +5,17 @@ import { HowItWorks } from "@/components/landing/how-it-works";
 import { LiveExample } from "@/components/landing/live-example";
 import { PreviewStrip } from "@/components/landing/preview-strip";
 import { ScoreTeaser } from "@/components/landing/score-teaser";
+import { getAnalyzedRepos } from "@/lib/supabase/anon";
 
-export default function Home() {
+export const revalidate = 86400; // gallery ISR — 01 §9
+
+export default async function Home() {
+  const analyzed = await getAnalyzedRepos(8).catch(() => []);
+  const entries = analyzed.map((row) => ({
+    repo: `${row.owner}/${row.name}`,
+    score: row.score,
+    stack: row.techSlugs,
+  }));
   return (
     <>
       <Hero />
@@ -14,7 +23,7 @@ export default function Home() {
       <HowItWorks />
       <LiveExample />
       <ScoreTeaser />
-      <Gallery />
+      <Gallery entries={entries} />
       <Faq />
     </>
   );

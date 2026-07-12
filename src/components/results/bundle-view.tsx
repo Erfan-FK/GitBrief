@@ -12,6 +12,7 @@ import {
   Zap,
 } from "lucide-react";
 import { strToU8, zipSync } from "fflate";
+import { ScoreModal } from "@/components/results/score-modal";
 import type {
   AnalysisCompleteEvent,
   BundleFileEvent,
@@ -160,19 +161,7 @@ export function BundleView({
     >
       {/* Action bar — sticky (01 §20) */}
       <div className="sticky top-16 z-40 flex flex-wrap items-center gap-3 rounded-[12px] border border-border bg-background/90 px-4 py-3 backdrop-blur-md">
-        {score && (
-          <span
-            className={`flex items-center gap-2 rounded-full border px-3 py-1 font-mono text-sm ${
-              score.band === "success"
-                ? "border-success/40 text-success"
-                : score.band === "warning"
-                  ? "border-warning/40 text-warning"
-                  : "border-destructive/40 text-destructive"
-            }`}
-          >
-            score {score.total}
-          </span>
-        )}
+        {score && <ScoreModal score={score} />}
         <span className="flex-1" />
         <button
           type="button"

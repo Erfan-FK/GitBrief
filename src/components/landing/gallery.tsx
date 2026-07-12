@@ -18,7 +18,7 @@ import {
   SiVitest,
   type IconType,
 } from "@icons-pack/react-simple-icons";
-import { GALLERY_FIXTURE } from "@/fixtures/live-example";
+import { GALLERY_FIXTURE, type GalleryEntry } from "@/fixtures/live-example";
 import { SectionReveal } from "@/components/landing/section-reveal";
 
 const ICONS: Record<string, IconType> = {
@@ -47,8 +47,9 @@ function scoreBand(score: number) {
   return "text-destructive border-destructive/30 bg-destructive/10";
 }
 
-/** 01 §9 — fixture-backed until M5 wires the DB. */
-export function Gallery() {
+/** 01 §9 — DB-backed when analyses exist; fixture fallback (never broken). */
+export function Gallery({ entries }: { entries?: GalleryEntry[] }) {
+  const list = entries && entries.length >= 4 ? entries : GALLERY_FIXTURE;
   return (
     <section id="gallery" className="px-6 py-24 max-md:py-16">
       <div className="mx-auto max-w-[1100px]">
@@ -57,7 +58,7 @@ export function Gallery() {
         </h2>
 
         <div className="mt-12 grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {GALLERY_FIXTURE.map((entry, i) => {
+          {list.map((entry, i) => {
             const owner = entry.repo.split("/")[0] ?? "";
             return (
               <SectionReveal key={entry.repo} delay={i * 0.05}>
