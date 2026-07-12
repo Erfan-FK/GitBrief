@@ -17,3 +17,9 @@ Deviations from plan/00–04 specs, one line each with reason.
 - M3: SSE endpoint is `/api/analyses/stream?owner=&repo=` — id-based route per 02 §1 arrives with the M4 Inngest pipeline; event names/shapes match spec.
 - M3: Upstash Redis caching skipped (no creds); Next fetch-cache covers tree/meta TTLs. Analyses row caching active only when `SUPABASE_SERVICE_ROLE_KEY` set.
 - M3: gin-gonic/gin detects as Go-only — the gin REPO doesn't depend on gin; library self-detection is out of detection scope (facts only).
+- M4: tarball + @specfy/stack-analyser step stubbed — detection registry already covers the DoD repos; revisit if eval (M6) shows gaps.
+- M4: deep path runs inline after the fast path in the SSE stream (interactive); Inngest function wraps the same pipeline for background jobs — no separate step-chain state since all steps are pure over fetched data.
+- M4: zip built client-side (fflate) from streamed bundle; `/api/bundles/{id}/zip` + Storage upload deferred until service key + hosting exist.
+- M4: skill generation grounding = vendor llms.txt only for now; Context7 API layer added when `CONTEXT7_API_KEY` is provisioned (MCP connector is dev-side, not runtime).
+- M5: OG card falls back to a "not analyzed yet" variant when no persisted score (keyless dev).
+- M5: gallery falls back to fixtures below 4 real analyses so the section is never empty.

@@ -50,5 +50,36 @@
 - Engine <2s on all; wall time 2–4s warm (fetch-bound; <3s p50 achievable with edge cache in prod)
 
 **Stubbed / deferred**
-- GitHub App token, Upstash Redis, Realtime, rate limiting → M4/M6.
-- `/api/analyses` POST + id-based stream route → M4 (Inngest pipeline).
+- GitHub App token, Upstash Redis, Realtime, rate limiting → M6.
+
+## M4 — Deep pipeline (generation)
+
+**Shipped**
+- FactSheet builder (02 §7.2): scriptsMap per package, Makefile/justfile targets, depth-3 structure tree, workspace topology, README excerpt, existing-config audit (02 §4 stale-claim detection).
+- CanonicalBrief generation (02 §7.1/7.2): Sonnet temp 0.2 with schema retry, falling back to the deterministic facts-only brief — the product never blocks on LLM flakiness. Runs LLM-free until `ANTHROPIC_API_KEY` is set.
+- Format writers (02 §7.5): AGENTS.md, CLAUDE.md (commands-first, ≤120 lines), `.cursor/rules/gitbrief.mdc`, `.mcp.json` (from registry `mcp_server_json`), `.cursorignore` (tree-derived).
+- Validator gate (02 §8): commands vs scriptsMap/targets, paths vs tree, version claims vs detection, link domain allowlist; line-level strip; planted-hallucination unit test proves the gate (M4 DoD ✓).
+- Skill resolution (02 §6): official-first (supabase + anthropic verified fetchable), sanitizer with prompt-injection quarantine (02 §6.1), LLM generation grounded in vendor llms.txt (skips with reason when no key/grounding — single-skill failure degrades, run completes: M4 DoD ✓).
+- Readiness score (02 §9): 13 deterministic checks = 100 pts, bands, fix hints.
+- Deep-path generator streams `file`/`score`/`analysis_complete` SSE events after detection; bundle + score persisted (bundles/bundle_files) and replayed on cache hit when service key present.
+- Inngest v4 function `analysis-run` + `/api/inngest` handler (background re-analysis path).
+- Results Phase 2 (01 §20): sticky action bar (score badge, Download .zip via client-side fflate, Copy-all-as-prompt with token trailer, share), sidebar tree with ✓/⚡/! status glyphs, viewer with per-file copy + provenance footer on every file.
+
+**DoD status**
+- Full bundle for M3 repos ✓ (verified live: vercel/ai 5 files + skips; supabase/supabase 6 files incl. official supabase skill)
+- Validator strips planted false command ✓ (unit test) · single-skill failure degrades ✓
+- Cached repo <500ms: implemented (DB replay) — demonstrable once `SUPABASE_SERVICE_ROLE_KEY` is set.
+
+## M5 — Score, OG, gallery, seed
+
+**Shipped**
+- Score live in results + breakdown modal with pass/fail rows, points, fix hints, `Copy fix list`.
+- `/api/og/{owner}/{repo}`: satori/ImageResponse 1200×630, §8 card layout (avatar, mono name, ring, giant score, check rows, wordmark); graceful "not analyzed yet" variant; bundled Space Grotesk + JetBrains Mono TTFs.
+- Results page metadata: OG + twitter card reference the endpoint.
+- Gallery: server-fetched from `analyses` (anon RLS read), 24h ISR, fixture fallback when <4 real rows (never a broken card).
+- `app/sitemap.ts`: landing + analyzed repos.
+- `pnpm db:pre-analyze`: drives the pipeline over the top-30 list (03 §4).
+
+**Blocked on user secrets**
+- Real gallery data + 30 pre-analyzed repos + real OG scores all need `SUPABASE_SERVICE_ROLE_KEY` in `.env.local`, then: `pnpm dev` + `pnpm db:pre-analyze`.
+- OG "renders correctly in social debuggers" needs a deployed URL (hosting TBD).
