@@ -48,7 +48,7 @@ export function HowItWorks() {
               transition={{ duration: 0.5, ease: EASE, delay: i * 0.12 }}
               className="flex flex-col items-start"
             >
-              <div className="flex h-16 items-center">
+              <div className="flex h-24 items-center">
                 <Anim />
               </div>
               <p className="mt-4 font-mono text-[0.8125rem] font-medium text-primary">

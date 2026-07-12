@@ -11,7 +11,7 @@ export function PasteAnim() {
 
   if (reduced) {
     return (
-      <svg viewBox="0 0 320 200" className="size-16 text-foreground" aria-hidden="true">
+      <svg viewBox="0 0 320 200" className="h-24 w-auto text-foreground" aria-hidden="true">
         <Frame />
         <text x="78" y="66" fontSize="13" fontFamily="var(--font-mono)" fill="var(--primary)">
           {URL_TEXT}
@@ -21,7 +21,7 @@ export function PasteAnim() {
   }
 
   return (
-    <svg viewBox="0 0 320 200" className="size-16 text-foreground" aria-hidden="true">
+    <svg viewBox="0 0 320 200" className="h-24 w-auto text-foreground" aria-hidden="true">
       {/* Browser frame draws in */}
       <motion.g
         style={{ stroke: "currentColor", fill: "none", strokeWidth: 1.5 }}
@@ -33,16 +33,22 @@ export function PasteAnim() {
           animate={{ pathLength: [0, 1, 1, 1] }}
           transition={{ duration: CYCLE, times: [0, 0.1, 0.95, 1], repeat: Infinity }}
         />
-        {/* Address bar; tints violet as cursor arrives */}
+        {/* Address bar draws in… */}
         <motion.rect
           x="64" y="50" width="192" height="24" rx="8"
-          animate={{
-            pathLength: [0, 1, 1, 1],
-            stroke: ["currentColor", "currentColor", "var(--primary)", "var(--primary)"],
-          }}
+          animate={{ pathLength: [0, 1, 1, 1] }}
           transition={{ duration: CYCLE, times: [0.05, 0.15, 0.3, 1], repeat: Infinity }}
         />
       </motion.g>
+
+      {/* …then a violet overlay fades in as the cursor arrives
+          (stroke color itself isn't animatable from currentColor) */}
+      <motion.rect
+        x="64" y="50" width="192" height="24" rx="8"
+        fill="none" stroke="var(--primary)" strokeWidth="1.5"
+        animate={{ opacity: [0, 0, 1, 1] }}
+        transition={{ duration: CYCLE, times: [0, 0.27, 0.32, 1], repeat: Infinity }}
+      />
 
       {/* Typed URL, char by char (real text — the reason we code this) */}
       <text x="78" y="66" fontSize="13" fontFamily="var(--font-mono)" fill="var(--primary)">

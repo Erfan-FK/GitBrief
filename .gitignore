@@ -28,3 +28,7 @@ build/
 coverage/
 playwright-report/
 test-results/
+
+# local screenshots / playwright-mcp artifacts
+*.jpeg
+.playwright-mcp/

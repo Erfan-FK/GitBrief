@@ -16,7 +16,7 @@ export function BriefAnim() {
 
   if (reduced) {
     return (
-      <svg viewBox="0 0 320 200" className="size-16 text-foreground" aria-hidden="true">
+      <svg viewBox="0 0 320 200" className="h-24 w-auto text-foreground" aria-hidden="true">
         <g stroke="currentColor" fill="none" strokeWidth={1.5} strokeLinecap="round" strokeLinejoin="round">
           <rect x="120" y="60" width="80" height="90" rx="10" stroke="var(--primary)" />
           <line x1="134" y1="82" x2="186" y2="82" />
@@ -30,7 +30,7 @@ export function BriefAnim() {
   }
 
   return (
-    <svg viewBox="0 0 320 200" className="size-16 text-foreground" aria-hidden="true">
+    <svg viewBox="0 0 320 200" className="h-24 w-auto text-foreground" aria-hidden="true">
       {/* Idle float on the whole scene after assembly */}
       <motion.g
         animate={{ y: [0, 0, -2, 2, 0] }}
@@ -84,7 +84,8 @@ export function BriefAnim() {
             duration: CYCLE,
             times: [0, 0.55, 0.63, 1],
             repeat: Infinity,
-            scale: { type: "spring", stiffness: 300, damping: 18 },
+            // no per-value spring: springs only support two keyframes
+            ease: "backOut",
           }}
         >
           <circle cx="204" cy="152" r="12" fill="var(--primary)" />

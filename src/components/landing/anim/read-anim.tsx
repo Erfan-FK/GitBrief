@@ -26,7 +26,7 @@ export function ReadAnim() {
   const reduced = useReducedMotion();
 
   return (
-    <svg viewBox="0 0 320 200" className="size-16 text-foreground" aria-hidden="true">
+    <svg viewBox="0 0 320 200" className="h-24 w-auto text-foreground" aria-hidden="true">
       {TREE_LINES.map((line, i) =>
         reduced ? (
           <line
@@ -36,23 +36,31 @@ export function ReadAnim() {
             strokeWidth={1.5} strokeLinecap="round"
           />
         ) : (
-          <motion.line
-            key={i}
-            x1={line.x} y1={line.y} x2={line.x + line.w} y2={line.y}
-            strokeWidth={1.5} strokeLinecap="round"
-            animate={{
-              pathLength: [0, 1, 1, 1],
-              stroke: line.glow
-                ? ["currentColor", "currentColor", "var(--primary)", "var(--primary)"]
-                : ["currentColor", "currentColor", "currentColor", "currentColor"],
-              opacity: [0, 1, 1, 1],
-            }}
-            transition={{
-              duration: CYCLE,
-              times: [0.02 + i * 0.025, 0.1 + i * 0.025, 0.45 + i * 0.02, 1],
-              repeat: Infinity,
-            }}
-          />
+          <g key={i}>
+            <motion.line
+              x1={line.x} y1={line.y} x2={line.x + line.w} y2={line.y}
+              stroke="currentColor" strokeWidth={1.5} strokeLinecap="round"
+              animate={{ pathLength: [0, 1, 1, 1], opacity: [0, 1, 1, 1] }}
+              transition={{
+                duration: CYCLE,
+                times: [0.02 + i * 0.025, 0.1 + i * 0.025, 0.45 + i * 0.02, 1],
+                repeat: Infinity,
+              }}
+            />
+            {line.glow && (
+              // violet overlay fades in as the scan line touches the row
+              <motion.line
+                x1={line.x} y1={line.y} x2={line.x + line.w} y2={line.y}
+                stroke="var(--primary)" strokeWidth={1.5} strokeLinecap="round"
+                animate={{ opacity: [0, 0, 1, 1] }}
+                transition={{
+                  duration: CYCLE,
+                  times: [0, 0.38 + i * 0.02, 0.45 + i * 0.02, 1],
+                  repeat: Infinity,
+                }}
+              />
+            )}
+          </g>
         ),
       )}
 
