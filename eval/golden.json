@@ -1,0 +1,15 @@
+{
+  "$comment": "Golden set — repos with developer-written agent files (02 §10). Grows toward 50 via eval/collect criteria: >500 stars, agent file >40 lines, owner-committed.",
+  "repos": [
+    "anthropics/anthropic-sdk-typescript",
+    "anthropics/anthropic-sdk-python",
+    "vercel/ai",
+    "supabase/supabase",
+    "openai/openai-node",
+    "cloudflare/workers-sdk",
+    "expo/expo",
+    "calcom/cal.com",
+    "PostHog/posthog",
+    "twentyhq/twenty"
+  ]
+}
