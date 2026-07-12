@@ -64,6 +64,7 @@ export function Footer() {
             href="https://github.com/sponsors/gitbrief"
             target="_blank"
             rel="noopener noreferrer"
+            data-umami-event="donate_clicked"
             className="inline-flex items-center gap-2 rounded-[12px] border border-border px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:border-primary hover:text-primary"
           >
             <Heart className="size-4" strokeWidth={1.5} />

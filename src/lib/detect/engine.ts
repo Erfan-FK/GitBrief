@@ -30,8 +30,26 @@ interface DepEntry {
 
 type DepMaps = Map<string, Map<string, DepEntry>>; // ecosystem → dep name → entry
 
+/** Secret patterns scrubbed from evidence excerpts before storage — 02 §11. */
+const SECRET_TOKEN_RES: RegExp[] = [
+  /\bgh[pousr]_[A-Za-z0-9]{20,}\b/g,
+  /\bsk-[A-Za-z0-9-]{20,}\b/g,
+  /\bAKIA[0-9A-Z]{16}\b/g,
+  /\bxox[baprs]-[A-Za-z0-9-]{10,}\b/g,
+  /\beyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{10,}\.[A-Za-z0-9_-]{10,}\b/g,
+];
+const SECRET_ASSIGNMENT_RE =
+  /((?:api[_-]?key|secret|token|password)["']?\s*[:=]\s*["']?)[^\s"',}]{8,}/gi;
+
+function scrubSecrets(text: string): string {
+  let out = text;
+  for (const re of SECRET_TOKEN_RES) out = out.replace(re, "[redacted]");
+  return out.replace(SECRET_ASSIGNMENT_RE, "$1[redacted]");
+}
+
 function excerpt(text: string): string {
-  return text.length > 120 ? `${text.slice(0, 117)}…` : text;
+  const scrubbed = scrubSecrets(text);
+  return scrubbed.length > 120 ? `${scrubbed.slice(0, 117)}…` : scrubbed;
 }
 
 function parseJson(content: string): Record<string, unknown> | null {

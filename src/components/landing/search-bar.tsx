@@ -17,6 +17,7 @@ import {
   type ResolveResponse,
 } from "@/lib/contracts";
 import { resolveRepoInput } from "@/lib/github/resolve-input";
+import { track } from "@/lib/analytics";
 
 export interface SearchBarHandle {
   fillAndSubmit: (repo: string) => void;
@@ -181,7 +182,8 @@ export const SearchBar = forwardRef<SearchBarHandle>(function SearchBar(
   );
 
   const submit = useCallback(
-    (resolved: ResolveResponse) => {
+    (resolved: ResolveResponse, source: "bar" | "chip" = "bar") => {
+      track("analyze_submitted", { source });
       setStatus({ kind: "submitting", resolved });
       router.push(`/${resolved.owner}/${resolved.repo}`);
     },
@@ -202,7 +204,7 @@ export const SearchBar = forwardRef<SearchBarHandle>(function SearchBar(
             body: JSON.stringify({ input: repo }),
           });
           const data = resolveResponseSchema.safeParse(await res.json());
-          if (res.ok && data.success) submit(data.data);
+          if (res.ok && data.success) submit(data.data, "chip");
           else {
             setStatus({ kind: "invalid", message: NOT_FOUND_MSG });
             setShake(true);
