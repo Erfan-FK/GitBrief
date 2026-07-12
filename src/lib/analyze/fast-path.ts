@@ -8,85 +8,76 @@ import {
 } from "@/lib/github/client";
 import { runDetection, findWorkspaces } from "@/lib/detect/engine";
 import { selectCandidateFiles, PRESENCE_ONLY } from "@/lib/detect/manifest-select";
-import type { AnalysisEvent } from "@/lib/analyze/events";
+import { runDeepPath } from "@/lib/analyze/deep-path";
+import {
+  scoreEventSchema,
+  type AnalysisEvent,
+  type BundleFileEvent,
+  type RepoEvent,
+} from "@/lib/analyze/events";
 import type { DetectionResult } from "@/lib/detect/types";
 import {
-  completeDetection,
+  completeAnalysis,
   createAnalysis,
   failAnalysis,
   getCachedAnalysis,
+  getCachedBundle,
+  markBriefing,
+  saveBundle,
   upsertRepo,
 } from "@/lib/analyze/store";
 
 /**
- * Fast path — 02 §2, synchronous, target <3s p50.
- * Async generator: yields SSE events in order; caller streams them.
+ * Full analysis pipeline: fast path (02 §2, <3s detection) then deep path
+ * (02 §5, bundle generation) — one event stream. Cache hit on
+ * repo@head_sha replays instantly (<500ms, M4 DoD).
  */
 export async function* runFastPath(
   owner: string,
   repo: string,
 ): AsyncGenerator<AnalysisEvent> {
   let analysisId: string | null = null;
+  const startedAt = Date.now();
   try {
     // 1. meta + head sha
     const meta = await getRepoMeta(owner, repo);
     const sha = await getHeadSha(owner, repo, meta.default_branch);
 
-    yield {
-      type: "repo",
-      data: {
-        owner: meta.owner.login,
-        repo: meta.name,
-        avatarUrl: meta.owner.avatar_url,
-        stars: meta.stargazers_count,
-        language: meta.language,
-        defaultBranch: meta.default_branch,
-        commitSha: sha,
-      },
+    const repoEvent: RepoEvent = {
+      owner: meta.owner.login,
+      repo: meta.name,
+      avatarUrl: meta.owner.avatar_url,
+      stars: meta.stargazers_count,
+      language: meta.language,
+      defaultBranch: meta.default_branch,
+      commitSha: sha,
     };
+    yield { type: "repo", data: repoEvent };
 
-    // Cache check (repo@head_sha) — 01 §18
+    // Cache check (repo@head_sha) — replay everything from DB
     const repoId = await upsertRepo(meta);
     if (repoId) {
       const cached = await getCachedAnalysis(repoId, sha);
       if (cached?.status === "complete" && cached.detection_json) {
-        const detection = cached.detection_json;
-        for (const manifest of detection.manifestsRead) {
-          yield { type: "manifest", data: { path: manifest } };
-        }
-        for (const tech of detection.techs) {
-          yield { type: "tech", data: toTechEvent(tech) };
-        }
-        yield {
-          type: "detection_complete",
-          data: {
-            techCount: detection.techs.length,
-            manifestCount: detection.manifestsRead.length,
-            durationMs: cached.duration_detect_ms ?? detection.durationMs,
-            isMonorepo: detection.isMonorepo,
-            largeRepo: detection.largeRepo,
-            cached: true,
-          },
-        };
-        return;
+        const replayed = yield* replayCached(cached.id, cached);
+        if (replayed) return;
       }
-      analysisId = await createAnalysis(repoId, sha);
+      if (!cached) analysisId = await createAnalysis(repoId, sha);
+      else if (cached.status !== "complete") analysisId = cached.id;
     }
 
     // 2. one recursive tree call
     const tree = await getTree(owner, repo, sha);
     const largeRepo = tree.truncated;
     const treePaths = tree.tree
-      .filter((e) => e.type === "blob")
-      .map((e) => e.path);
+      .filter((entry) => entry.type === "blob")
+      .map((entry) => entry.path);
 
-    // 3. candidate selection — needs workspace pkg paths, which need the
-    // root manifests: two-phase fetch.
+    // 3. candidate selection + two-phase fetch
     const phase1 = selectCandidateFiles(treePaths);
     const files = new Map<string, string>();
-
-    const fetchInto = async (path: string): Promise<string | null> => {
-      if (PRESENCE_ONLY.has(path)) return "";
+    const fetchInto = async (path: string): Promise<void> => {
+      if (PRESENCE_ONLY.has(path)) return;
       const content = await getRawFile(owner, repo, sha, path);
       if (content !== null) {
         files.set(
@@ -96,28 +87,20 @@ export async function* runFastPath(
             : content,
         );
       }
-      return content;
     };
 
-    const results = await Promise.allSettled(phase1.map(fetchInto));
-    void results;
+    await Promise.allSettled(phase1.map(fetchInto));
     for (const path of phase1) {
       if (files.has(path) || PRESENCE_ONLY.has(path)) {
         yield { type: "manifest", data: { path } };
       }
     }
 
-    // Workspace package.json second wave (cap shared with phase 1)
-    const workspaces = findWorkspaces({
-      treePaths,
-      files,
-      languages: {},
-      largeRepo,
-    });
+    const workspaces = findWorkspaces({ treePaths, files, languages: {}, largeRepo });
     const phase2 = selectCandidateFiles(
       treePaths,
-      workspaces.map((w) => w.path),
-    ).filter((p) => !files.has(p) && !phase1.includes(p));
+      workspaces.map((workspace) => workspace.path),
+    ).filter((path) => !files.has(path) && !phase1.includes(path));
     if (phase2.length > 0) {
       await Promise.allSettled(phase2.map(fetchInto));
       for (const path of phase2) {
@@ -128,18 +111,17 @@ export async function* runFastPath(
     // 5. languages
     const languages = await getLanguages(owner, repo).catch(() => ({}));
 
-    // 4+6. detect, stream, persist
+    // 4+6. detect + stream
     const detection: DetectionResult = runDetection({
       treePaths,
       files,
       languages,
       largeRepo,
     });
-
     for (const tech of detection.techs) {
       yield { type: "tech", data: toTechEvent(tech) };
     }
-    if (analysisId) await completeDetection(analysisId, detection);
+    if (analysisId) await markBriefing(analysisId, detection);
 
     yield {
       type: "detection_complete",
@@ -152,6 +134,34 @@ export async function* runFastPath(
         cached: false,
       },
     };
+
+    // Deep path — bundle generation (M4)
+    const deep = runDeepPath(repoEvent, detection, treePaths, files);
+    let deepResult: { files: BundleFileEvent[]; score: unknown } | undefined;
+    while (true) {
+      const { value, done } = await deep.next();
+      if (done) {
+        deepResult = value;
+        break;
+      }
+      yield value;
+    }
+
+    if (analysisId && deepResult) {
+      await saveBundle(
+        analysisId,
+        deepResult.files.map((file) => ({
+          path: file.path,
+          status: file.status,
+          sortOrder: file.sortOrder,
+          ...(file.content !== undefined ? { content: file.content } : {}),
+          ...(file.origin ? { origin: file.origin } : {}),
+          ...(file.skipReason ? { skipReason: file.skipReason } : {}),
+          ...(file.provenance ? { provenance: file.provenance } : {}),
+        })),
+      );
+      await completeAnalysis(analysisId, deepResult.score, Date.now() - startedAt);
+    }
   } catch (error) {
     if (analysisId) {
       await failAnalysis(
@@ -170,12 +180,82 @@ export async function* runFastPath(
     }
     yield {
       type: "error",
+      data: { code: "internal", message: "Analysis failed — try again shortly." },
+    };
+  }
+}
+
+/** Replay a fully cached analysis (detection + bundle + score) from the DB. */
+async function* replayCached(
+  analysisId: string,
+  cached: {
+    detection_json: DetectionResult | null;
+    score_json: unknown;
+    duration_detect_ms: number | null;
+  },
+): AsyncGenerator<AnalysisEvent, boolean> {
+  const detection = cached.detection_json;
+  if (!detection) return false;
+  const bundleFiles = await getCachedBundle(analysisId);
+
+  for (const manifest of detection.manifestsRead) {
+    yield { type: "manifest", data: { path: manifest } };
+  }
+  for (const tech of detection.techs) {
+    yield { type: "tech", data: toTechEvent(tech) };
+  }
+  yield {
+    type: "detection_complete",
+    data: {
+      techCount: detection.techs.length,
+      manifestCount: detection.manifestsRead.length,
+      durationMs: cached.duration_detect_ms ?? detection.durationMs,
+      isMonorepo: detection.isMonorepo,
+      largeRepo: detection.largeRepo,
+      cached: true,
+    },
+  };
+
+  if (!bundleFiles || bundleFiles.length === 0) return false;
+
+  for (const file of bundleFiles) {
+    yield {
+      type: "file",
       data: {
-        code: "internal",
-        message: "Analysis failed — try again shortly.",
+        path: file.path,
+        status: file.status as "complete" | "skipped",
+        sortOrder: file.sort_order ?? 50,
+        ...(file.content !== null ? { content: file.content } : {}),
+        ...(file.origin
+          ? { origin: file.origin as "official" | "generated" | "generated-cached" | "deterministic" }
+          : {}),
+        ...(file.skip_reason ? { skipReason: file.skip_reason } : {}),
+        ...(file.provenance_json
+          ? {
+              provenance: file.provenance_json as {
+                sources: { url: string; kind: string }[];
+                fetchedAt: string;
+              },
+            }
+          : {}),
       },
     };
   }
+
+  const score = scoreEventSchema.safeParse(cached.score_json);
+  if (score.success) yield { type: "score", data: score.data };
+
+  yield {
+    type: "analysis_complete",
+    data: {
+      fileCount: bundleFiles.filter((f) => f.status === "complete").length,
+      skippedCount: bundleFiles.filter((f) => f.status === "skipped").length,
+      totalDurationMs: 0,
+      verifiedCommands: 0,
+      strippedClaims: 0,
+    },
+  };
+  return true;
 }
 
 function toTechEvent(tech: DetectionResult["techs"][number]) {
