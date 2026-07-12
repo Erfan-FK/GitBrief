@@ -97,4 +97,15 @@
 **Deferred / user-side**
 - Load test 50 concurrent: needs GITHUB_TOKEN (anonymous 60/h quota can't sustain it) — script-ready via `db:pre-analyze` pattern.
 - Golden set is 10 repos (spec: 50) — grows via collect criteria once GITHUB_TOKEN allows sweeping.
-- Launch checklist items (domain, GitHub org, social drafts, Umami dashboard) are user actions; asset swap-in (04) awaits Higgsfield credits.
+- Launch checklist items (domain, GitHub org, social drafts, Umami dashboard) are user actions.
+
+## Asset swap-in (04) — DONE
+
+Full Higgsfield production run (one session, style-locked): logo L1×4 →
+L2 refine + dark inverse + 4K master; illustrations I2–I5 (2 candidates
+each, winners mounted as webp); O1 OG fallback; A2–A4 kling3_0_turbo loop
+videos (social polish — code SVG anims stay primary in-app). Shipped logo
+is the hand-traced SVG per 04 §2; favicon/apple-icon/icon-512 regenerated
+from the winner. I5 wired into the new 404 page, I4 into the results
+empty state. Full provenance log with prompts + job ids:
+`docs/ASSETS-GENERATED.md`. Deploy runbook + env-key guide: `DEPLOY.md`.

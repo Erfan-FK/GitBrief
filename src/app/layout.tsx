@@ -28,6 +28,7 @@ const jetbrainsMono = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://gitbrief.dev"),
   title: "gitbrief — make any repo agent-ready",
   description:
     "Paste a GitHub URL — get CLAUDE.md, AGENTS.md, rules and version-matched skill files, grounded in your actual codebase. Free, no signup.",
