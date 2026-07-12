@@ -12,7 +12,8 @@
     "test:e2e": "playwright test",
     "db:seed": "tsx db/seed/run.ts",
     "db:migrate": "echo \"Migrations are applied via Supabase MCP/CLI — see db/schema.sql\"",
-    "db:pre-analyze": "tsx db/seed/pre-analyze.ts"
+    "db:pre-analyze": "tsx db/seed/pre-analyze.ts",
+    "eval": "tsx eval/run.ts"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.111.0",

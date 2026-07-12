@@ -23,3 +23,7 @@ Deviations from plan/00–04 specs, one line each with reason.
 - M4: skill generation grounding = vendor llms.txt only for now; Context7 API layer added when `CONTEXT7_API_KEY` is provisioned (MCP connector is dev-side, not runtime).
 - M5: OG card falls back to a "not analyzed yet" variant when no persisted score (keyless dev).
 - M5: gallery falls back to fixtures below 4 real analyses so the section is never empty.
+- M6: rate limit falls back to per-process memory when Upstash creds absent (single-instance dev only; Upstash required before multi-instance deploy).
+- M6: rate-limit quota consumed on fresh analysis runs only — cached replays and cache-hit reloads are free (01 §18 re-analyze still gated).
+- M6: golden set starts at 10 repos; several high-profile CLAUDE.md files document conventions, not commands → command-coverage reads n/a for them (metric reported only where applicable).
+- M6: CSP allows 'unsafe-inline' scripts — required by Next.js inline runtime; nonce-based CSP deferred to deploy hardening.

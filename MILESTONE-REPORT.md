@@ -83,3 +83,18 @@
 **Blocked on user secrets**
 - Real gallery data + 30 pre-analyzed repos + real OG scores all need `SUPABASE_SERVICE_ROLE_KEY` in `.env.local`, then: `pnpm dev` + `pnpm db:pre-analyze`.
 - OG "renders correctly in social debuggers" needs a deployed URL (hosting TBD).
+
+## M6 — Hardening + eval + launch
+
+**Shipped**
+- Rate limiting (02 §11): 10/day/IP sliding window, plan-keyed config (`anon` only), Upstash REST when configured with in-memory fallback; quota consumed only on FRESH runs — cache replays free. Rate-limited panel per 01 §21 (reset time + soft donate link). Unit-tested (10 allowed, 11th blocked).
+- Abuse guards: >8k-file trees → manifest-only mode; 120s wall-clock budget on the stream.
+- Security pass (02 §11): secret-scan on evidence excerpts (GitHub/OpenAI/AWS/Slack/JWT tokens + key=value assignments → `[redacted]`), strict CSP (self + Umami only; verified zero violations), nosniff/referrer/permissions headers, frame-ancestors none.
+- Eval harness (02 §10): `pnpm eval` → `eval/report.md`; metrics: command coverage (inline + fenced commands vs our FactSheet), path accuracy (invented paths = hard fail, exit 1), length ratio, stripped-claim counts. First report committed: 0 invented paths across golden set. LLM-judge activates with `ANTHROPIC_API_KEY`.
+- Analytics events (02 §12): analyze_submitted{source}, analysis_completed{cached,durationMs}, bundle_downloaded, prompt_copied, file_copied{file}, score_viewed, share_clicked, rate_limited, donate_clicked.
+- `robots.txt` (disallow /api/), README with badges, MIT LICENSE.
+
+**Deferred / user-side**
+- Load test 50 concurrent: needs GITHUB_TOKEN (anonymous 60/h quota can't sustain it) — script-ready via `db:pre-analyze` pattern.
+- Golden set is 10 repos (spec: 50) — grows via collect criteria once GITHUB_TOKEN allows sweeping.
+- Launch checklist items (domain, GitHub org, social drafts, Umami dashboard) are user actions; asset swap-in (04) awaits Higgsfield credits.
