@@ -1,6 +1,9 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24">
-  <rect width="24" height="24" rx="5.28" fill="#6D4AFF"/>
-  <rect x="6" y="7" width="12" height="2" rx="1" fill="#FAF9F7"/>
-  <rect x="6" y="11" width="9" height="2" rx="1" fill="#FAF9F7"/>
-  <rect x="6" y="15" width="12" height="2" rx="1" fill="#FAF9F7"/>
+<svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 48 48">
+  <!-- favicon: L2 winner traced — violet squircle, off-white b with briefing-doc counter -->
+  <rect width="48" height="48" rx="10.5" fill="#6D4AFF"/>
+  <path d="M14 10 a3.5 3.5 0 0 1 7 0 v9.5 a13 13 0 1 1 -7 11.5 Z" fill="#FAF9F7"/>
+  <rect x="20" y="22" width="12" height="15" rx="3.5" fill="#6D4AFF"/>
+  <rect x="22.5" y="25.5" width="7" height="2.2" rx="1.1" fill="#FAF9F7"/>
+  <rect x="22.5" y="29.4" width="7" height="2.2" rx="1.1" fill="#FAF9F7"/>
+  <rect x="22.5" y="33.3" width="4.5" height="2.2" rx="1.1" fill="#FAF9F7"/>
 </svg>

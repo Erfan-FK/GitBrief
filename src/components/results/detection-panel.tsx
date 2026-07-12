@@ -231,6 +231,23 @@ export function DetectionPanel({
               </div>
             ))}
 
+            {complete && complete.techCount === 0 && (
+              // Empty repo / no manifests — I4 art per 01 §21
+              <div className="mt-4 flex flex-col items-center text-center">
+                <img
+                  src="/assets/illus/i4.webp"
+                  alt=""
+                  width={160}
+                  height={160}
+                />
+                <p className="mt-3 text-sm text-muted-foreground">
+                  Nothing to read yet — this repo has no manifests we
+                  recognize. We look for lockfiles, package manifests
+                  (package.json, pyproject.toml, go.mod, Cargo.toml…) and
+                  framework configs.
+                </p>
+              </div>
+            )}
             {complete?.isMonorepo && (
               <p className="mt-5 font-mono text-xs text-muted-foreground">
                 monorepo · workspace packages grouped

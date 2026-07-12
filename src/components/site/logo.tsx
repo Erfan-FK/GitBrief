@@ -14,22 +14,35 @@ export function GitHubIcon({ className }: { className?: string }) {
 }
 
 /**
- * Placeholder logo mark until asset L2 lands (plan/01 §15).
- * Violet squircle with three "briefing lines" suggesting the b counter.
+ * Logo mark — hand-traced SVG of the Higgsfield L2 winner (04 §2:
+ * "the shipped logo is ALWAYS the SVG, AI raster is reference only").
+ * A solid violet lowercase b whose counter is a briefing document with
+ * three lines. Raster masters live in public/assets/logo/.
  */
 export function LogoMark({ size = 24 }: { size?: number }) {
   return (
     <svg
       width={size}
       height={size}
-      viewBox="0 0 24 24"
+      viewBox="0 0 48 48"
       aria-hidden="true"
       focusable="false"
     >
-      <rect width="24" height="24" rx="5.28" fill="var(--primary)" />
-      <rect x="6" y="7" width="12" height="2" rx="1" fill="#FAF9F7" />
-      <rect x="6" y="11" width="9" height="2" rx="1" fill="#FAF9F7" />
-      <rect x="6" y="15" width="12" height="2" rx="1" fill="#FAF9F7" />
+      {/* b: rounded stem + full bowl, single solid shape */}
+      <path
+        d="M12 8
+           a4 4 0 0 1 8 0
+           v10.5
+           a15 15 0 1 1 -8 13.5
+           Z"
+        fill="var(--primary)"
+      />
+      {/* briefing-document counter knocked out of the bowl */}
+      <rect x="19" y="22" width="14" height="17" rx="4" fill="var(--background)" />
+      {/* three briefing lines, decreasing width */}
+      <rect x="22" y="26" width="8.5" height="2.4" rx="1.2" fill="var(--primary)" />
+      <rect x="22" y="30.3" width="8.5" height="2.4" rx="1.2" fill="var(--primary)" />
+      <rect x="22" y="34.6" width="5.5" height="2.4" rx="1.2" fill="var(--primary)" />
     </svg>
   );
 }
