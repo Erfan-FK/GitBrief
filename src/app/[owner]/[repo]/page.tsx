@@ -9,7 +9,15 @@ export async function generateMetadata({
   params: Promise<{ owner: string; repo: string }>;
 }): Promise<Metadata> {
   const { owner, repo } = await params;
-  return { title: `${owner}/${repo} — gitbrief` };
+  const title = `${owner}/${repo} — gitbrief`;
+  const description = `Agent-readiness brief for ${owner}/${repo}: CLAUDE.md, AGENTS.md, rules and version-matched skills — every command verified.`;
+  const ogImage = `/api/og/${owner}/${repo}`;
+  return {
+    title,
+    description,
+    openGraph: { title, description, images: [ogImage] },
+    twitter: { card: "summary_large_image", title, description, images: [ogImage] },
+  };
 }
 
 export default async function ResultsPage({
