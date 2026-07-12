@@ -1,6 +1,10 @@
 import { runFastPath } from "@/lib/analyze/fast-path";
+import { checkRateLimit, clientIp } from "@/lib/ratelimit";
 
 export const dynamic = "force-dynamic";
+
+/** Per-job wall-clock budget — 02 §11. */
+const JOB_BUDGET_MS = 120_000;
 
 /**
  * SSE fast-path stream. M3 addresses analyses by owner/repo query params
@@ -15,6 +19,8 @@ export async function GET(request: Request) {
     return new Response("owner and repo query params required", { status: 422 });
   }
 
+  const ip = clientIp(request);
+
   const encoder = new TextEncoder();
   const stream = new ReadableStream({
     async start(controller) {
@@ -23,9 +29,18 @@ export async function GET(request: Request) {
           encoder.encode(`event: ${event}\ndata: ${JSON.stringify(data)}\n\n`),
         );
       };
+      const deadline = Date.now() + JOB_BUDGET_MS;
       try {
-        for await (const event of runFastPath(owner, repo)) {
+        const rateGate = () => checkRateLimit(ip);
+        for await (const event of runFastPath(owner, repo, rateGate)) {
           send(event.type, event.data);
+          if (Date.now() > deadline) {
+            send("error", {
+              code: "timeout",
+              message: "Analysis exceeded the time budget — try again.",
+            });
+            break;
+          }
         }
       } catch {
         send("error", { code: "internal", message: "Stream failed." });

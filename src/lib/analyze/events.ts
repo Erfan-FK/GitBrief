@@ -41,8 +41,9 @@ export const detectionCompleteSchema = z.object({
 export type DetectionCompleteEvent = z.infer<typeof detectionCompleteSchema>;
 
 export const errorEventSchema = z.object({
-  code: z.enum(["not_found", "too_large", "timeout", "internal"]),
+  code: z.enum(["not_found", "too_large", "timeout", "internal", "rate_limited"]),
   message: z.string(),
+  resetMs: z.number().optional(),
 });
 export type ErrorEvent = z.infer<typeof errorEventSchema>;
 

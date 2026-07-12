@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { strToU8, zipSync } from "fflate";
 import { ScoreModal } from "@/components/results/score-modal";
+import { track } from "@/lib/analytics";
 import type {
   AnalysisCompleteEvent,
   BundleFileEvent,
@@ -110,6 +111,7 @@ export function BundleView({
   };
 
   const downloadZip = () => {
+    track("bundle_downloaded");
     const entries: Record<string, Uint8Array> = {};
     for (const file of sorted) {
       if (file.status === "complete" && file.content) {
@@ -129,6 +131,7 @@ export function BundleView({
   };
 
   const copyAllAsPrompt = async () => {
+    track("prompt_copied");
     const parts = sorted
       .filter((f) => f.status === "complete" && f.content)
       .map((f) => `===== ${f.path} =====\n\n${f.content}`);
@@ -141,12 +144,14 @@ export function BundleView({
   };
 
   const shareUrl = async () => {
+    track("share_clicked");
     await navigator.clipboard.writeText(window.location.href);
     flashCopied("share");
   };
 
   const copyFile = async () => {
     if (active?.content) {
+      track("file_copied", { file: active.path });
       await navigator.clipboard.writeText(active.content);
       flashCopied("file");
     }

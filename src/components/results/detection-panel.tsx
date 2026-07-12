@@ -14,6 +14,7 @@ import type {
   TechEvent,
 } from "@/lib/analyze/events";
 import { BundleView } from "@/components/results/bundle-view";
+import { track } from "@/lib/analytics";
 import { CATEGORY_ORDER } from "@/lib/detect/types";
 import type { TechCategory } from "@/lib/detect/registry";
 
@@ -64,14 +65,24 @@ export function DetectionPanel({
     );
     on<ScoreEvent>("score", setScore);
     let finished = false;
+    let wasCached = false;
+    on<DetectionCompleteEvent>("detection_complete", (d) => {
+      wasCached = d.cached;
+    });
     on<AnalysisCompleteEvent>("analysis_complete", (d) => {
       finished = true;
       setAnalysisComplete(d);
+      track("analysis_completed", {
+        cached: wasCached,
+        durationMs: d.totalDurationMs,
+        fileCount: d.fileCount,
+      });
       source.close();
     });
     on<ErrorEvent>("error", (d) => {
       finished = true;
       setError(d);
+      if (d.code === "rate_limited") track("rate_limited");
       source.close();
     });
     source.onerror = () => {
@@ -151,7 +162,26 @@ export function DetectionPanel({
         </h2>
 
         {error ? (
-          <p className="mt-3 text-sm text-destructive">{error.message}</p>
+          error.code === "rate_limited" ? (
+            <p className="mt-3 text-sm text-muted-foreground">
+              Daily limit reached (10/day)
+              {error.resetMs
+                ? ` — resets in ${Math.ceil(error.resetMs / 3600000)}h`
+                : ""}
+              .{" "}
+              <a
+                href="https://github.com/sponsors/gitbrief"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-primary hover:underline"
+              >
+                Support gitbrief
+              </a>{" "}
+              to help raise limits.
+            </p>
+          ) : (
+            <p className="mt-3 text-sm text-destructive">{error.message}</p>
+          )
         ) : (
           <>
             <ul className="mt-4 flex flex-wrap gap-x-4 gap-y-1 font-mono text-[0.8125rem] text-muted-foreground">

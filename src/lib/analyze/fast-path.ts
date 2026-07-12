@@ -32,9 +32,16 @@ import {
  * (02 §5, bundle generation) — one event stream. Cache hit on
  * repo@head_sha replays instantly (<500ms, M4 DoD).
  */
+export interface RateGateResult {
+  allowed: boolean;
+  resetMs: number;
+}
+
 export async function* runFastPath(
   owner: string,
   repo: string,
+  /** Called only when a fresh analysis will run — cache hits are free. */
+  rateGate?: () => Promise<RateGateResult>,
 ): AsyncGenerator<AnalysisEvent> {
   let analysisId: string | null = null;
   const startedAt = Date.now();
@@ -66,12 +73,28 @@ export async function* runFastPath(
       else if (cached.status !== "complete") analysisId = cached.id;
     }
 
-    // 2. one recursive tree call
+    // Fresh run from here — consume rate-limit quota (02 §11)
+    if (rateGate) {
+      const rate = await rateGate();
+      if (!rate.allowed) {
+        yield {
+          type: "error",
+          data: {
+            code: "rate_limited",
+            message: "Daily limit reached (10/day)",
+            resetMs: rate.resetMs,
+          },
+        };
+        return;
+      }
+    }
+
+    // 2. one recursive tree call — >8k files → manifest-only mode (02 §5)
     const tree = await getTree(owner, repo, sha);
-    const largeRepo = tree.truncated;
     const treePaths = tree.tree
       .filter((entry) => entry.type === "blob")
       .map((entry) => entry.path);
+    const largeRepo = tree.truncated || treePaths.length > 8000;
 
     // 3. candidate selection + two-phase fetch
     const phase1 = selectCandidateFiles(treePaths);

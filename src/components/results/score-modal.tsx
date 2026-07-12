@@ -10,6 +10,7 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import type { ScoreEvent } from "@/lib/analyze/events";
+import { track } from "@/lib/analytics";
 
 /** Score breakdown modal — 01 §20: pass/fail rows, fix hints, copy list. */
 export function ScoreModal({ score }: { score: ScoreEvent }) {
@@ -35,7 +36,7 @@ export function ScoreModal({ score }: { score: ScoreEvent }) {
   };
 
   return (
-    <Dialog>
+    <Dialog onOpenChange={(open) => open && track("score_viewed")}>
       <DialogTrigger
         render={
           <button
