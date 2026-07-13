@@ -1,5 +1,32 @@
 # Generated assets — Higgsfield production log (04-ASSETS swap-in)
 
+## Revision 2 (2026-07-13) — user feedback pass
+
+- **Logo:** the user selected the L2 refined raster (job
+  `43ba006d-fb59-457e-8574-a84daf1d2b6d`, share link
+  higgsfield.ai/s/mbP-221DWJE) as the shipped mark. The hand-traced SVG was
+  retired; `LogoMark` now renders the raster (96px cuts, light + dark
+  variants), favicon is `src/app/icon.png` (64² from the 4K master), and an
+  embedded-raster SVG lives at `public/assets/logo/gitbrief-logo.svg`.
+- **Illustrations regenerated on Recraft V4.1 `model_type: vector`**
+  (chosen via `models_explore` recommend) with `background_color: #FAF9F7`
+  + brand palette `#6D4AFF/#1A1523` — the model outputs TRUE SVGs. The
+  full-canvas background rect is stripped post-download so the art is
+  transparent and sits on the real page background in both themes
+  (`dark:invert dark:hue-rotate-180` preserves the violet on dark).
+  Jobs: I2 `9b6e49df`, I3 `c67acdfd`, I4 `423cafc9`, I5 `352a39d6`,
+  O1 `d63a2a93`. Mounts: `public/assets/illus/i2–i5.svg`,
+  `public/assets/og-fallback.svg` (+ 1200×630 PNG rasterized from it).
+- **Videos removed** — kling3_0_turbo loops read poorly (illegible
+  pseudo-text, off-style motion) and were never referenced by the app;
+  the code-built SVG animations remain the only in-app motion. If social
+  clips are wanted later, re-attempt on `kling3_0` (non-turbo) or a
+  start-frame animation driven by the Recraft stills.
+
+---
+
+## Revision 1 (2026-07-12) — original run (superseded where noted above)
+
 Generated 2026-07-12 in ONE session with the identical style lock (04 §1),
 per the spec rule. All prompts recorded verbatim for reproducibility.
 Model: `nano_banana_pro` (served as nano_banana_2) for images,

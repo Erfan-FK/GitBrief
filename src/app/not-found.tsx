@@ -1,17 +1,17 @@
-import Image from "next/image";
+/* eslint-disable @next/next/no-img-element -- decorative SVG illustration */
 import Link from "next/link";
 
 /** 404 — I5 art per 01 §21 (Higgsfield asset, 04 §3). */
 export default function NotFound() {
   return (
     <div className="flex min-h-[100svh] flex-col items-center justify-center px-6 pt-16 text-center">
-      <Image
-        src="/assets/illus/i5.webp"
+      {/* transparent vector; invert+hue-rotate keeps brand violet on dark */}
+      <img
+        src="/assets/illus/i5.svg"
         alt=""
         width={220}
         height={220}
-        priority
-        className="dark:opacity-90"
+        className="dark:invert dark:hue-rotate-180"
       />
       <h1 className="mt-6 font-display text-2xl font-medium">
         This page tore off somewhere.

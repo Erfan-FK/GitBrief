@@ -179,6 +179,21 @@ export function DetectionPanel({
               </a>{" "}
               to help raise limits.
             </p>
+          ) : error.code === "not_found" ? (
+            // Friendly repo-404 panel with I5 art — 01 §21
+            <div className="mt-4 flex flex-col items-center text-center">
+              <img
+                src="/assets/illus/i5.svg"
+                alt=""
+                width={160}
+                height={160}
+                className="dark:invert dark:hue-rotate-180"
+              />
+              <p className="mt-3 text-sm text-muted-foreground">
+                Repo not found — it may be private or misspelled. Head back
+                and try owner/repo.
+              </p>
+            </div>
           ) : (
             <p className="mt-3 text-sm text-destructive">{error.message}</p>
           )
@@ -235,10 +250,11 @@ export function DetectionPanel({
               // Empty repo / no manifests — I4 art per 01 §21
               <div className="mt-4 flex flex-col items-center text-center">
                 <img
-                  src="/assets/illus/i4.webp"
+                  src="/assets/illus/i4.svg"
                   alt=""
                   width={160}
                   height={160}
+                  className="dark:invert dark:hue-rotate-180"
                 />
                 <p className="mt-3 text-sm text-muted-foreground">
                   Nothing to read yet — this repo has no manifests we
