@@ -32,3 +32,10 @@ test-results/
 # local screenshots / playwright-mcp artifacts
 *.jpeg
 .playwright-mcp/
+
+# never track media/video blobs
+*.mkv
+*.mp4
+*.mov
+*.avi
+*.webm

@@ -1,5 +1,21 @@
 # Generated assets — Higgsfield production log (04-ASSETS swap-in)
 
+## Revision 3 (2026-07-14) — all-SVG logo pipeline
+
+- The selected logo master (job `43ba006d`) was **vector-traced** with
+  `scripts/trace-logo.mjs` (imagetracerjs, palette-locked, svgo-optimized,
+  background paths stripped) rather than re-generated — this preserves the
+  exact design the user chose while producing true ~1.5KB vectors.
+- Shipped files: `public/assets/logo/gitbrief-logo.svg` (bare violet mark,
+  transparent), `gitbrief-logo-dark.svg` (ink squircle + off-white mark),
+  `src/app/icon.svg` (favicon: violet squircle recolor).
+- **Every logo PNG deleted** from the repo. Single exception:
+  `src/app/apple-icon.png` — iOS requires PNG for apple-touch-icon — is
+  rasterized FROM the traced SVG, not from any AI output.
+- Illustrations were already true SVGs (Revision 2, Recraft V4.1 vector).
+- Remaining PNG in repo: `public/assets/og-fallback.png` — social-card
+  raster (og:image cannot be SVG), rasterized from `og-fallback.svg`.
+
 ## Revision 2 (2026-07-13) — user feedback pass
 
 - **Logo:** the user selected the L2 refined raster (job
