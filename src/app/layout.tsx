@@ -67,7 +67,10 @@ export default async function RootLayout({
   const stars = await fetchStars();
   return (
     <html lang="en" suppressHydrationWarning>
+      {/* suppressHydrationWarning: browser extensions (Grammarly, etc.) inject
+          data-* attributes on <body> before React hydrates — harmless mismatch */}
       <body
+        suppressHydrationWarning
         className={`${inter.variable} ${spaceGrotesk.variable} ${jetbrainsMono.variable} font-sans antialiased`}
       >
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>

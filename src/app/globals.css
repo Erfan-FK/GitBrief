@@ -156,10 +156,13 @@ body {
   font-family: var(--font-jetbrains-mono), ui-monospace, monospace;
 }
 
-/* Focus visible everywhere — 01 §14 */
-:focus-visible {
-  outline: 2px solid var(--primary);
-  outline-offset: 2px;
+/* Hidden scrollbar — content still scrolls, no chrome. Used in code panels. */
+.gb-noscroll {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* legacy Edge */
+}
+.gb-noscroll::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
 }
 
 @layer base {
@@ -168,5 +171,11 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+  }
+  /* Focus visible everywhere — 01 §14. In `base` so component utilities
+     (e.g. the search input's focus-visible:outline-none) can override it. */
+  :focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
   }
 }

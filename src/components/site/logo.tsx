@@ -15,32 +15,20 @@ export function GitHubIcon({ className }: { className?: string }) {
 
 /* eslint-disable @next/next/no-img-element -- tiny fixed-size brand mark */
 /**
- * Logo mark — SVG traced from the Higgsfield master the user selected
- * (job 43ba006d, share link higgsfield.ai/s/mbP-221DWJE), palette-locked
- * to brand tokens (scripts/trace-logo.mjs). Light = bare violet mark;
- * dark = ink squircle + off-white mark. No raster logos anywhere.
+ * Logo mark — the violet `b` traced from the Higgsfield master the user
+ * selected (job 43ba006d, higgsfield.ai/s/mbP-221DWJE), palette-locked to
+ * brand tokens. The same violet mark is used in BOTH light and dark themes
+ * (violet #6D4AFF passes contrast on the dark #0F0D17 bg). No raster logos.
  */
 export function LogoMark({ size = 24 }: { size?: number }) {
   return (
-    <span
-      className="inline-block shrink-0"
-      style={{ width: size, height: size }}
+    <img
+      src="/assets/logo/gitbrief-logo.svg"
+      alt=""
+      width={size}
+      height={size}
       aria-hidden="true"
-    >
-      <img
-        src="/assets/logo/gitbrief-logo.svg"
-        alt=""
-        width={size}
-        height={size}
-        className="block dark:hidden"
-      />
-      <img
-        src="/assets/logo/gitbrief-logo-dark.svg"
-        alt=""
-        width={size}
-        height={size}
-        className="hidden dark:block"
-      />
-    </span>
+      className="inline-block shrink-0"
+    />
   );
 }

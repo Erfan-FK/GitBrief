@@ -48,10 +48,24 @@ export function HowItWorks() {
               transition={{ duration: 0.5, ease: EASE, delay: i * 0.12 }}
               className="flex flex-col items-start"
             >
-              <div className="flex h-24 items-center">
-                <Anim />
+              {/* framed animation panel */}
+              <div className="relative flex aspect-[16/9] w-full items-center justify-center overflow-hidden rounded-[16px] border border-border bg-gradient-to-b from-card to-background">
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-0 opacity-[0.5]"
+                  style={{
+                    backgroundImage:
+                      "linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px)",
+                    backgroundSize: "22px 22px",
+                    maskImage:
+                      "radial-gradient(ellipse 70% 70% at 50% 50%, black 30%, transparent 75%)",
+                  }}
+                />
+                <div className="relative h-[78%] w-[86%]">
+                  <Anim />
+                </div>
               </div>
-              <p className="mt-4 font-mono text-[0.8125rem] font-medium text-primary">
+              <p className="mt-5 font-mono text-[0.8125rem] font-medium text-primary">
                 {eyebrow}
               </p>
               <h3 className="mt-2 font-display text-xl font-medium">{title}</h3>

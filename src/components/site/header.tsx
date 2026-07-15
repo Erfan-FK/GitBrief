@@ -32,10 +32,10 @@ export function Header({ stars }: { stars: number | null }) {
 
   return (
     <header
-      className={`fixed inset-x-0 top-0 z-50 h-16 transition-[background-color,border-color,backdrop-filter] duration-200 ease-out ${
+      className={`fixed inset-x-0 top-0 z-50 h-16 backdrop-blur-md transition-[background-color,border-color] duration-200 ease-out ${
         solid
-          ? "border-b border-border bg-background/80 backdrop-blur-md"
-          : "border-b border-transparent bg-transparent"
+          ? "border-b border-border bg-background/85"
+          : "border-b border-border/40 bg-background/60"
       }`}
     >
       <div className="mx-auto flex h-full max-w-[1100px] items-center justify-between px-6">

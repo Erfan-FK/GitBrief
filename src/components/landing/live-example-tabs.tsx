@@ -65,7 +65,7 @@ export function LiveExampleTabs({ tabs }: { tabs: TabData[] }) {
           </span>
 
           <div
-            className="relative max-h-[420px] overflow-auto"
+            className="gb-noscroll relative max-h-[420px] overflow-auto"
             style={{
               maskImage:
                 "linear-gradient(to bottom, transparent, black 24px, black calc(100% - 24px), transparent)",

@@ -1,97 +1,136 @@
 "use client";
 
-import { motion, useReducedMotion } from "framer-motion";
+import { useRef } from "react";
+import gsap from "gsap";
+import { useGSAP } from "@gsap/react";
 
-const CYCLE = 6; // 5s scene + 1s rest — 04 §4
-const URL_TEXT = "github.com/owner/repo";
+gsap.registerPlugin(useGSAP);
 
-/** A2 — browser draws in, cursor glides, URL types, enter pulses. */
+/**
+ * A2 · PASTE — GSAP-driven browser scene: window draws in, cursor glides to
+ * the address bar, the bar tints violet, an abstract URL types out as blocks,
+ * Enter fires a violet ripple. Seamless loop; reduced-motion → final frame.
+ * viewBox 320×180, stroke = currentColor, accent = var(--primary).
+ */
 export function PasteAnim() {
-  const reduced = useReducedMotion();
+  const ref = useRef<SVGSVGElement>(null);
 
-  if (reduced) {
-    return (
-      <svg viewBox="0 0 320 200" className="h-24 w-auto text-foreground" aria-hidden="true">
-        <Frame />
-        <text x="78" y="66" fontSize="13" fontFamily="var(--font-mono)" fill="var(--primary)">
-          {URL_TEXT}
-        </text>
-      </svg>
-    );
-  }
+  useGSAP(
+    () => {
+      const mm = gsap.matchMedia();
+
+      mm.add("(prefers-reduced-motion: reduce)", () => {
+        gsap.set(".gb-draw", { strokeDashoffset: 0 });
+        gsap.set([".gb-bar-fill", ".gb-char", ".gb-cursor"], { opacity: 1 });
+        gsap.set(".gb-char", { scaleX: 1 });
+      });
+
+      mm.add("(prefers-reduced-motion: no-preference)", () => {
+        const tl = gsap.timeline({ repeat: -1, repeatDelay: 0.9 });
+
+        tl.set(".gb-char", { transformOrigin: "left center", scaleX: 0, opacity: 0 })
+          .set(".gb-bar-fill", { opacity: 0 })
+          .set(".gb-ripple", { opacity: 0, scale: 0.6, transformOrigin: "center" })
+          .set(".gb-cursor", { opacity: 0 })
+          // window + chrome draw in (pathLength=1 → normalized offset 1→0)
+          .set(".gb-draw", { strokeDashoffset: 1 })
+          .to(".gb-draw", {
+            strokeDashoffset: 0,
+            duration: 0.7,
+            ease: "power2.inOut",
+            stagger: 0.08,
+          })
+          // cursor appears + glides to the address bar
+          .to(".gb-cursor", { opacity: 1, duration: 0.15 }, "-=0.2")
+          .fromTo(
+            ".gb-cursor",
+            { x: 96, y: 70 },
+            { x: 20, y: 8, duration: 0.55, ease: "power3.inOut" },
+          )
+          // bar tints violet
+          .to(".gb-bar-fill", { opacity: 1, duration: 0.25 }, "-=0.15")
+          // URL types out as blocks
+          .to(
+            ".gb-char",
+            { scaleX: 1, opacity: 1, duration: 0.06, stagger: 0.05, ease: "none" },
+            "-=0.05",
+          )
+          // Enter → violet ripple
+          .to(".gb-cursor", { opacity: 0, duration: 0.2 }, "+=0.1")
+          .to(
+            ".gb-ripple",
+            { opacity: 0.6, scale: 1, duration: 0.12, ease: "power2.out" },
+            "<",
+          )
+          .to(".gb-ripple", { opacity: 0, scale: 1.5, duration: 0.5, ease: "power2.out" });
+      });
+    },
+    { scope: ref },
+  );
 
   return (
-    <svg viewBox="0 0 320 200" className="h-24 w-auto text-foreground" aria-hidden="true">
-      {/* Browser frame draws in */}
-      <motion.g
-        style={{ stroke: "currentColor", fill: "none", strokeWidth: 1.5 }}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      >
-        <motion.rect
-          x="40" y="30" width="240" height="140" rx="12"
-          animate={{ pathLength: [0, 1, 1, 1] }}
-          transition={{ duration: CYCLE, times: [0, 0.1, 0.95, 1], repeat: Infinity }}
+    <svg
+      ref={ref}
+      viewBox="0 0 320 180"
+      className="h-full w-full text-foreground/80"
+      fill="none"
+      aria-hidden="true"
+    >
+      <g strokeLinecap="round" strokeLinejoin="round">
+        {/* browser window */}
+        <rect
+          className="gb-draw"
+          x="46" y="30" width="228" height="120" rx="14"
+          stroke="currentColor" strokeWidth="2"
+          pathLength={1} strokeDasharray={1}
         />
-        {/* Address bar draws in… */}
-        <motion.rect
-          x="64" y="50" width="192" height="24" rx="8"
-          animate={{ pathLength: [0, 1, 1, 1] }}
-          transition={{ duration: CYCLE, times: [0.05, 0.15, 0.3, 1], repeat: Infinity }}
+        {/* chrome divider */}
+        <path
+          className="gb-draw"
+          d="M46 56 H274"
+          stroke="currentColor" strokeWidth="1.5" opacity="0.5"
+          pathLength={1} strokeDasharray={1}
         />
-      </motion.g>
+        {/* traffic dots */}
+        <circle className="gb-draw" cx="60" cy="43" r="3" stroke="currentColor" strokeWidth="1.5" pathLength={1} strokeDasharray={1} />
+        <circle className="gb-draw" cx="72" cy="43" r="3" stroke="currentColor" strokeWidth="1.5" pathLength={1} strokeDasharray={1} />
+        <circle className="gb-draw" cx="84" cy="43" r="3" stroke="currentColor" strokeWidth="1.5" pathLength={1} strokeDasharray={1} />
+        {/* address bar */}
+        <rect
+          className="gb-draw"
+          x="104" y="37" width="150" height="12" rx="6"
+          stroke="currentColor" strokeWidth="1.5"
+          pathLength={1} strokeDasharray={1}
+        />
+      </g>
 
-      {/* …then a violet overlay fades in as the cursor arrives
-          (stroke color itself isn't animatable from currentColor) */}
-      <motion.rect
-        x="64" y="50" width="192" height="24" rx="8"
-        fill="none" stroke="var(--primary)" strokeWidth="1.5"
-        animate={{ opacity: [0, 0, 1, 1] }}
-        transition={{ duration: CYCLE, times: [0, 0.27, 0.32, 1], repeat: Infinity }}
+      {/* violet address-bar highlight */}
+      <rect
+        className="gb-bar-fill"
+        x="104" y="37" width="150" height="12" rx="6"
+        fill="none" stroke="var(--primary)" strokeWidth="2"
       />
 
-      {/* Typed URL, char by char (real text — the reason we code this) */}
-      <text x="78" y="66" fontSize="13" fontFamily="var(--font-mono)" fill="var(--primary)">
-        {URL_TEXT.split("").map((char, i) => (
-          <motion.tspan
+      {/* typed URL as blocks */}
+      <g className="gb-url" fill="var(--primary)">
+        {[112, 126, 138, 152, 168, 184, 196, 210, 224].map((x, i) => (
+          <rect
             key={i}
-            animate={{ opacity: [0, 0, 1, 1] }}
-            transition={{
-              duration: CYCLE,
-              times: [0, 0.32 + i * 0.0075, 0.33 + i * 0.0075, 1],
-              repeat: Infinity,
-            }}
-          >
-            {char}
-          </motion.tspan>
+            className="gb-char"
+            x={x} y="40.5" width={i % 3 === 2 ? 4 : 9} height="5" rx="2.5"
+          />
         ))}
-      </text>
+      </g>
 
-      {/* Cursor glides to the bar */}
-      <motion.path
-        d="M0 0 L4.5 12 L7 7.5 L12 5 Z"
+      {/* Enter ripple centered on the bar */}
+      <circle className="gb-ripple" cx="179" cy="43" r="22" stroke="var(--primary)" strokeWidth="2" />
+
+      {/* cursor */}
+      <path
+        className="gb-cursor"
+        d="M0 0 L0 15 L4 11 L7 17 L9 16 L6 10 L11 10 Z"
         fill="currentColor"
-        animate={{ x: [220, 150, 150, 150], y: [150, 66, 66, 66], opacity: [1, 1, 0, 0] }}
-        transition={{ duration: CYCLE, times: [0.12, 0.27, 0.32, 1], repeat: Infinity }}
-      />
-
-      {/* Enter pulse ring radiates */}
-      <motion.circle
-        cx="160" cy="62" r="26"
-        fill="none" stroke="var(--primary)" strokeWidth="1.5"
-        animate={{ scale: [1, 1, 1.4, 1], opacity: [0, 0.8, 0, 0] }}
-        style={{ transformOrigin: "160px 62px" }}
-        transition={{ duration: CYCLE, times: [0.55, 0.58, 0.68, 1], repeat: Infinity }}
       />
     </svg>
-  );
-}
-
-function Frame() {
-  return (
-    <g stroke="currentColor" fill="none" strokeWidth={1.5} strokeLinecap="round">
-      <rect x="40" y="30" width="240" height="140" rx="12" />
-      <rect x="64" y="50" width="192" height="24" rx="8" stroke="var(--primary)" />
-    </g>
   );
 }
