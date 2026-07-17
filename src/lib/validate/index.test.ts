@@ -28,6 +28,7 @@ const FACTS: FactSheet = {
   readmeExcerpt: "",
   existingConfigAudit: [],
   languages: {},
+  sampledFiles: [],
   largeRepo: false,
 };
 

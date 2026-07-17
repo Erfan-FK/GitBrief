@@ -6,6 +6,13 @@ import { TECH_BY_SLUG } from "@/lib/detect/registry";
 /**
  * Format writers — pure functions (02 §7.5). Interface takes
  * (brief, facts, detection) so future Windsurf/Gemini writers plug in.
+ *
+ * Division of labor (per agents.md standard + Claude Code memory guidance):
+ * - AGENTS.md = the "README for agents": full project explanation —
+ *   purpose, how it works, architecture, project map, conventions, testing,
+ *   setup, gotchas.
+ * - CLAUDE.md = terse and command-first (≤120 lines target): commands,
+ *   stack, short map, rules — loaded EVERY session so every token must pay.
  */
 
 function commandsSection(brief: CanonicalBrief): string {
@@ -17,6 +24,12 @@ function commandsSection(brief: CanonicalBrief): string {
 function structureSection(brief: CanonicalBrief): string {
   return brief.structure_highlights
     .map((h) => `- \`${h.path}\`${h.description ? ` — ${h.description}` : ""}`)
+    .join("\n");
+}
+
+function keyModulesSection(brief: CanonicalBrief): string {
+  return brief.key_modules
+    .map((m) => `- \`${m.path}\` — ${m.role}`)
     .join("\n");
 }
 
@@ -46,16 +59,29 @@ export function writeAgentsMd(
   const sections = [
     `# ${facts.repo.owner}/${facts.repo.name} — Agent Guide`,
     "",
-    staleHeader(facts) + brief.overview,
-    "",
-    "## Stack",
-    stackSection(facts),
+    staleHeader(facts) + brief.purpose,
   ];
+
+  if (brief.how_it_works) {
+    sections.push("", "## How it works", brief.how_it_works);
+  }
+
+  sections.push("", "## Stack", stackSection(facts));
+
   const commands = commandsSection(brief);
   if (commands) sections.push("", "## Commands", commands);
-  if (brief.structure_highlights.length > 0) {
-    sections.push("", "## Structure", structureSection(brief));
+
+  if (brief.key_modules.length > 0) {
+    sections.push("", "## Project map", keyModulesSection(brief));
   }
+  if (brief.structure_highlights.length > 0) {
+    sections.push(
+      "",
+      brief.key_modules.length > 0 ? "### Directory guide" : "## Project map",
+      structureSection(brief),
+    );
+  }
+
   if (facts.workspaceTopology.length > 0) {
     sections.push(
       "",
@@ -65,6 +91,7 @@ export function writeAgentsMd(
         .join("\n"),
     );
   }
+
   if (brief.architecture_notes.length > 0) {
     sections.push(
       "",
@@ -74,6 +101,7 @@ export function writeAgentsMd(
         .join("\n"),
     );
   }
+
   if (brief.conventions.length > 0) {
     sections.push(
       "",
@@ -83,24 +111,49 @@ export function writeAgentsMd(
         .join("\n"),
     );
   }
+
+  if (brief.testing) {
+    sections.push("", "## Testing", brief.testing);
+  }
+
+  if (brief.setup.length > 0) {
+    sections.push(
+      "",
+      "## Setup & environment",
+      brief.setup.map((s) => `- ${s}`).join("\n"),
+    );
+  }
+
   if (brief.gotchas.length > 0) {
     sections.push("", "## Gotchas", brief.gotchas.map((g) => `- ${g}`).join("\n"));
   }
   return sections.join("\n") + "\n";
 }
 
-/** Same content, CC conventions: commands first, ≤120 lines target. */
+/** Command-first, ≤120 lines target — loaded every session (memory docs). */
 export function writeClaudeMd(brief: CanonicalBrief, facts: FactSheet): string {
+  // Two-sentence purpose: CLAUDE.md points at AGENTS.md for the deep story.
+  const shortPurpose =
+    brief.purpose.split(/(?<=[.!?])\s+/).slice(0, 2).join(" ") +
+    " Full brief: AGENTS.md.";
+
   const sections = [
     `# CLAUDE.md — ${facts.repo.owner}/${facts.repo.name}`,
     "",
-    staleHeader(facts) + brief.overview,
+    staleHeader(facts) + shortPurpose,
   ];
   const commands = commandsSection(brief);
   if (commands) sections.push("", "## Commands", commands);
   sections.push("", "## Stack", stackSection(facts));
-  if (brief.structure_highlights.length > 0) {
-    sections.push("", "## Structure", structureSection(brief));
+  if (brief.key_modules.length > 0) {
+    sections.push(
+      "",
+      "## Map",
+      brief.key_modules
+        .slice(0, 8)
+        .map((m) => `- \`${m.path}\` — ${m.role}`)
+        .join("\n"),
+    );
   }
   if (brief.conventions.length > 0) {
     sections.push(
@@ -109,11 +162,12 @@ export function writeClaudeMd(brief: CanonicalBrief, facts: FactSheet): string {
       brief.conventions.map((c) => `- ${c.rule} (\`${c.evidence}\`)`).join("\n"),
     );
   }
+  if (brief.testing) sections.push("", "## Testing", brief.testing);
   if (brief.gotchas.length > 0) {
     sections.push("", "## Gotchas", brief.gotchas.map((g) => `- ${g}`).join("\n"));
   }
   const output = sections.join("\n") + "\n";
-  // ≤120 lines target: trim structure first if over
+  // ≤120 lines target: trim from the bottom if over
   const lines = output.split("\n");
   return lines.length > 120 ? lines.slice(0, 120).join("\n") + "\n" : output;
 }

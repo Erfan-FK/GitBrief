@@ -25,6 +25,7 @@ import {
   PRESENCE_ONLY,
 } from "../src/lib/detect/manifest-select";
 import { buildFactSheet } from "../src/lib/generate/factsheet";
+import { collectSamples } from "../src/lib/generate/sample";
 import { generateBrief } from "../src/lib/generate/brief";
 import { writeClaudeMd } from "../src/lib/generate/writers";
 import { validateFile } from "../src/lib/validate";
@@ -100,6 +101,9 @@ async function evalRepo(slug: string): Promise<RepoReport> {
       languages,
       largeRepo: false,
     });
+    const samples = await collectSamples(treePaths, inputFiles, (path) =>
+      getRawFile(owner, repo, sha, path),
+    );
     const facts = buildFactSheet(
       {
         owner: meta.owner.login,
@@ -113,6 +117,7 @@ async function evalRepo(slug: string): Promise<RepoReport> {
       detection,
       treePaths,
       inputFiles,
+      samples,
     );
     const { brief } = await generateBrief(facts);
     const raw = writeClaudeMd(brief, facts);

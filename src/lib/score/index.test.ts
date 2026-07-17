@@ -19,6 +19,7 @@ function facts(partial: Partial<FactSheet>): FactSheet {
     readmeExcerpt: "",
     existingConfigAudit: [],
     languages: {},
+    sampledFiles: [],
     largeRepo: false,
     ...partial,
   };

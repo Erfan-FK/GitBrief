@@ -27,3 +27,10 @@ Deviations from plan/00–04 specs, one line each with reason.
 - M6: rate-limit quota consumed on fresh analysis runs only — cached replays and cache-hit reloads are free (01 §18 re-analyze still gated).
 - M6: golden set starts at 10 repos; several high-profile CLAUDE.md files document conventions, not commands → command-coverage reads n/a for them (metric reported only where applicable).
 - M6: CSP allows 'unsafe-inline' scripts — required by Next.js inline runtime; nonce-based CSP deferred to deploy hardening.
+- Depth v2: FactSheet now carries role-sampled source files (≤7, secret-scrubbed, prompt-only — never persisted); CanonicalBrief schema rebuilt around purpose/how_it_works/key_modules/conventions-with-evidence; AGENTS.md is the full agent README, CLAUDE.md stays terse and points to it.
+- Depth v2: brief generation moved to structured outputs (`output_config.format`, messages.parse) — freeform-JSON parse failures eliminated; `commands` crosses the wire as an array (records violate additionalProperties:false).
+- Depth v2: generation model → claude-sonnet-5; it rejects non-default sampling params, so the temp-0.2 rule is satisfied by omission (structured outputs constrain instead).
+- Depth v2: skills grounded via Context7 REST (search → docs) with a relevance gate — result title/id must contain the queried name (search returned better-auth for Auth.js); wrong-library grounding is discarded as worse than none.
+- Depth v2: skill generation runs thinking-disabled, max_tokens 4500, 3-lane bounded concurrency — full-parallel fan-out dropped connections behind constrained networks and blew the wall clock (measured 76–147s/skill with thinking, 28–80s without).
+- Depth v2: SSE job budget 120s → 300s (02 §11) — deep path now writes a brief + up to 10 grounded skills; measured taxonomy full run ≈ 3 min.
+- Dev: Node fetch ignores HTTP(S)_PROXY; behind a local proxy/VPN the shared `anthropicClient()` hands the SDK undici's fetch + EnvHttpProxyAgent (same-build pairing required). No-op when proxy env absent.

@@ -159,7 +159,9 @@ export async function* runFastPath(
     };
 
     // Deep path — bundle generation (M4)
-    const deep = runDeepPath(repoEvent, detection, treePaths, files);
+    const deep = runDeepPath(repoEvent, detection, treePaths, files, (path) =>
+      getRawFile(owner, repo, sha, path),
+    );
     let deepResult: { files: BundleFileEvent[]; score: unknown } | undefined;
     while (true) {
       const { value, done } = await deep.next();

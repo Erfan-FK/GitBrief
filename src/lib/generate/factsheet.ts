@@ -1,11 +1,12 @@
 import { z } from "zod";
 import type { DetectionResult } from "@/lib/detect/types";
 import type { RepoEvent } from "@/lib/analyze/events";
+import type { SampledFile } from "@/lib/generate/sample";
 
 /**
  * FactSheet — the deterministic ground truth handed to generation (02 §7.2).
- * Built ONLY from parsed data; contains no raw source beyond the README
- * excerpt and evidence already capped at 120ch.
+ * Includes secret-scrubbed source samples (prompt-only, never persisted —
+ * 02 §11) so the generator can describe what the code actually does.
  */
 
 export interface FactSheet {
@@ -34,6 +35,8 @@ export interface FactSheet {
   workspaceTopology: { path: string; name?: string }[];
   packageManager?: string;
   readmeExcerpt: string;
+  /** Secret-scrubbed source samples by role — prompt-only, never persisted. */
+  sampledFiles: SampledFile[];
   existingConfigAudit: ExistingConfigAudit[];
   languages: Record<string, number>;
   largeRepo: boolean;
@@ -169,6 +172,7 @@ export function buildFactSheet(
   detection: DetectionResult,
   treePaths: string[],
   files: Map<string, string>,
+  sampledFiles: SampledFile[] = [],
 ): FactSheet {
   const scriptsMap: Record<string, Record<string, string>> = {};
   const packagePaths = [
@@ -192,8 +196,9 @@ export function buildFactSheet(
   });
 
   const readme = files.get("README.md") ?? "";
-  // ≤2000 tokens ≈ 8000 chars
-  const readmeExcerpt = readme.slice(0, 8000);
+  // ≤3500 tokens ≈ 14000 chars — the README is the author's own description
+  // of the project; starving it starves the brief.
+  const readmeExcerpt = readme.slice(0, 14000);
 
   return {
     repo: {
@@ -222,6 +227,7 @@ export function buildFactSheet(
       ? { packageManager: detection.packageManager }
       : {}),
     readmeExcerpt,
+    sampledFiles,
     existingConfigAudit: auditExistingConfigs(
       files,
       scriptsMap,

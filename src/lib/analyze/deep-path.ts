@@ -1,4 +1,5 @@
 import { buildFactSheet } from "@/lib/generate/factsheet";
+import { collectSamples } from "@/lib/generate/sample";
 import { generateBrief } from "@/lib/generate/brief";
 import {
   writeAgentsMd,
@@ -47,9 +48,13 @@ export async function* runDeepPath(
   detection: DetectionResult,
   treePaths: string[],
   files: Map<string, string>,
+  fetchFile: (path: string) => Promise<string | null> = async () => null,
 ): AsyncGenerator<AnalysisEvent, DeepPathResult> {
   const started = Date.now();
-  const facts = buildFactSheet(repo, detection, treePaths, files);
+  // Sample real source files (secret-scrubbed, prompt-only — 02 §11) so the
+  // generator can describe what the code actually does.
+  const sampledFiles = await collectSamples(treePaths, files, fetchFile);
+  const facts = buildFactSheet(repo, detection, treePaths, files, sampledFiles);
 
   // Vendor homepages are allowed link targets in generated docs (02 §8)
   const vendorDomains = detection.techs

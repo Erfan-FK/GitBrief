@@ -3,8 +3,9 @@ import { checkRateLimit, clientIp } from "@/lib/ratelimit";
 
 export const dynamic = "force-dynamic";
 
-/** Per-job wall-clock budget — 02 §11. */
-const JOB_BUDGET_MS = 120_000;
+/** Per-job wall-clock budget — 02 §11 said 120s, raised to 300s now that
+ * the deep path generates ~10 grounded skills (see DECISIONS.md). */
+const JOB_BUDGET_MS = 300_000;
 
 /**
  * SSE fast-path stream. M3 addresses analyses by owner/repo query params
