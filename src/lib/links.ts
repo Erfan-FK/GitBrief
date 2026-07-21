@@ -5,8 +5,10 @@
 export const LINKS = {
   github: "https://github.com/Erfan-FK/GitBrief",
   githubOwner: "https://github.com/Erfan-FK",
-  x: "https://x.com/gitbrief",
-  contact: "mailto:hello@gitbrief.dev",
+  x: "https://x.com/erfanfkia",
+  /** Gmail compose deep-link — opens a draft to the maintainer in the browser. */
+  contact:
+    "https://mail.google.com/mail/?view=cm&fs=1&to=erfanfarhangkia@gmail.com&su=gitbrief",
   /**
    * Donation destination. GitHub Sponsors routes card payments to your bank
    * via Stripe Connect with zero platform fee. Swap to a Ko-fi / Stripe

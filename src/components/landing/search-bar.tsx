@@ -44,10 +44,6 @@ const NOT_FOUND_MSG = "Repo not found — check the URL or try owner/repo";
 /** Quick-try repos shown inside the bar (01 §4.4). */
 const EXAMPLE_CHIPS = ["vercel/ai", "shadcn-ui/ui", "supabase/supabase"];
 
-function truncateRepo(repo: string) {
-  return repo.length > 18 ? `${repo.slice(0, 18)}…` : repo;
-}
-
 export const SearchBar = forwardRef<SearchBarHandle>(function SearchBar(
   _props,
   ref,
@@ -349,10 +345,6 @@ export const SearchBar = forwardRef<SearchBarHandle>(function SearchBar(
               <span className="flex items-center gap-2">
                 <Loader2 className="size-4 animate-spin" aria-hidden="true" />
                 Reading repo…
-              </span>
-            ) : resolved ? (
-              <span className="max-md:hidden">
-                Brief {resolved.owner}/{truncateRepo(resolved.repo)} →
               </span>
             ) : (
               <span className="max-md:hidden">Brief it →</span>

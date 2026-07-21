@@ -1,52 +1,70 @@
+<div align="center">
+
+<img src="src/app/icon.svg" width="88" alt="gitbrief logo" />
+
 # gitbrief
+
+**Make any repo agent-ready in one paste.**
 
 [![CI](https://github.com/Erfan-FK/GitBrief/actions/workflows/ci.yml/badge.svg)](https://github.com/Erfan-FK/GitBrief/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-6D4AFF.svg)](LICENSE)
-[![Next.js 15](https://img.shields.io/badge/Next.js-15-black)](https://nextjs.org)
 
-Paste a GitHub repo URL — get a verified agent-readiness bundle: `CLAUDE.md`,
-`AGENTS.md`, `.cursor/rules`, version-matched `SKILL.md` files, `.mcp.json`
-suggestions and an ignore file — plus a shareable Readiness Score.
+Paste a GitHub URL → get a verified briefing bundle your AI coding agents
+actually understand: `AGENTS.md`, `CLAUDE.md`, editor rules, version-matched
+skills, and a readiness score.
 
-Or swap `github.com` → `gitbrief.dev` in any repo URL.
+</div>
 
-## Why it's different
+---
 
-1. **Facts before generation.** Lockfiles, scripts and configs are parsed
-   deterministically; the LLM only writes connective tissue.
-2. **Verify or delete.** Every command, path and version in the output passes
-   a validator gate against your actual repo — or it's stripped.
-3. **Official first.** Vendor-shipped skills (Supabase, Anthropic, …) are
-   fetched verbatim; we only generate when nothing official exists, grounded
-   in current docs.
-4. **Provenance everywhere.** Every file shows its sources and verification
-   counts.
+## What you get
 
-## Development
+| File | What it does |
+|---|---|
+| `AGENTS.md` | The full "README for agents" — what the repo is, how it works, commands, project map, conventions, gotchas |
+| `CLAUDE.md` | Terse, command-first memory file for Claude Code |
+| `.cursor/rules/` | The same rules, packaged for Cursor |
+| `.claude/skills/*/SKILL.md` | Version-matched skills for your stack — Next.js 13 gets Next.js 13 docs, not 15 |
+| `.mcp.json` | MCP server suggestions matched to your stack |
+| **Readiness score** | 0–100 with per-item fix hints — what's missing before an agent can work your repo well |
 
-```bash
-pnpm install
-pnpm dev            # Next.js dev server
-pnpm test           # vitest unit tests
-pnpm test:e2e       # Playwright (uses system Chrome)
-pnpm lint && pnpm typecheck
-pnpm eval           # golden-set eval → eval/report.md
-pnpm db:seed        # seed technologies + detection rules
-pnpm db:pre-analyze # pre-analyze the top-30 gallery repos
+## Why it's trustworthy
+
+- **Facts before generation.** Lockfiles, manifests, and configs are parsed
+  deterministically — versions come from your lockfile, never from guesswork.
+- **Grounded in your code.** The generator reads real sampled source files
+  from the repo, so briefs describe what the code *does*, not what the README
+  promises.
+- **Verify or delete.** Every command, path, and version in the output is
+  checked against the actual repo — anything unverifiable is stripped, and
+  every file shows its verification counts.
+- **Current docs, right version.** Skills are grounded in official vendor
+  skills, `llms.txt`, or live documentation for the exact major version you
+  ship — never training-data folklore.
+- **Your code stays yours.** Source excerpts are used in-memory during
+  analysis and never stored. See [Privacy](https://gitbrief.dev/privacy).
+
+## How it works
+
+```
+paste URL → detect stack (lockfiles, manifests, configs)
+          → sample key source files
+          → generate one canonical brief (Claude)
+          → validate every claim against the repo
+          → score readiness → download the bundle
 ```
 
-Copy `.env.example` → `.env.local`. Works with zero secrets (deterministic
-briefs, no caching); add `ANTHROPIC_API_KEY` for LLM briefs and
-`SUPABASE_SERVICE_ROLE_KEY` for caching + gallery persistence.
+Results stream live, and finished analyses are cached — the second visitor
+gets the bundle instantly.
 
-## Architecture
+## Built with
 
-Single Next.js 15 app. `src/lib`: `github/` client · `detect/` rule engine +
-lockfile parsers · `generate/` FactSheet → CanonicalBrief → format writers ·
-`resolve/` skill resolution + sanitizer · `validate/` the gate · `score/`
-readiness score. Pipeline streams over SSE; Supabase caches by
-`repo@head_sha`. Specs in `plan/`.
+Next.js 15 · Claude API (structured outputs) · Supabase · Tailwind v4
 
-## License
+---
 
-MIT — not affiliated with GitHub, Inc.
+<div align="center">
+
+MIT · Not affiliated with GitHub, Inc. · Built by [Erfan](https://github.com/Erfan-FK)
+
+</div>

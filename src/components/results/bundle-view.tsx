@@ -22,6 +22,19 @@ import type {
 
 /** Results Phase 2 — two-pane bundle browser per 01 §20. */
 
+const KIND_LABELS: Record<string, string> = {
+  frontend: "Frontend app",
+  backend: "Backend service",
+  fullstack: "Full-stack app",
+  library: "Library / SDK",
+  cli: "CLI tool",
+  mobile: "Mobile app",
+  "data-ml": "Data / ML",
+  devops: "DevOps / Infra",
+  docs: "Documentation",
+  other: "Repository",
+};
+
 function relativeTime(iso: string): string {
   const diffMs = Date.now() - new Date(iso).getTime();
   const minutes = Math.round(diffMs / 60000);
@@ -207,6 +220,18 @@ export function BundleView({
           )}
         </button>
       </div>
+
+      {/* Repo summary — what this repo is + how it works, from the brief */}
+      {score?.summary && (
+        <div className="mt-4 rounded-[12px] border border-border bg-card p-4">
+          <span className="inline-flex items-center rounded-full border border-primary/30 bg-primary-soft px-2.5 py-0.5 font-mono text-xs text-primary">
+            {KIND_LABELS[score.summary.kind] ?? score.summary.kind}
+          </span>
+          <p className="mt-2.5 text-[0.9375rem] leading-relaxed text-muted-foreground">
+            {score.summary.text}
+          </p>
+        </div>
+      )}
 
       <div className="mt-4 grid gap-4 md:grid-cols-[280px_1fr]">
         {/* Sidebar tree */}

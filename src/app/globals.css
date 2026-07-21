@@ -147,6 +147,46 @@ body {
   }
 }
 
+/* Gallery marquee — cards travel right → left in an infinite loop; both
+   edges fade via mask so cards dissolve out on the left and in on the right.
+   Track holds the list twice; -50% translate == one full list width. */
+.gb-marquee {
+  overflow: hidden;
+  mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 10%,
+    black 90%,
+    transparent
+  );
+  -webkit-mask-image: linear-gradient(
+    to right,
+    transparent,
+    black 10%,
+    black 90%,
+    transparent
+  );
+}
+.gb-marquee-track {
+  display: flex;
+  gap: 1rem;
+  width: max-content;
+  padding-inline: 0.5rem;
+  animation: gb-marquee var(--gb-marquee-duration, 48s) linear infinite;
+}
+.gb-marquee:hover .gb-marquee-track {
+  animation-play-state: paused;
+}
+@keyframes gb-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(calc(-50% - 0.5rem)); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gb-marquee-track {
+    animation: none;
+  }
+}
+
 /* Shiki panels keep --code-bg (01 §1.1), not the theme's own bg */
 .gb-shiki pre {
   background: transparent !important;

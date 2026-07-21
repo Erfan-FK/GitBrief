@@ -22,6 +22,7 @@ import {
   failAnalysis,
   getCachedAnalysis,
   getCachedBundle,
+  getLatestCompleteAnalysis,
   markBriefing,
   saveBundle,
   upsertRepo,
@@ -61,7 +62,9 @@ export async function* runFastPath(
     };
     yield { type: "repo", data: repoEvent };
 
-    // Cache check (repo@head_sha) — replay everything from DB
+    // Cache check — exact repo@head_sha first, then the latest complete
+    // analysis for the repo (new commits alone never trigger a re-run;
+    // explicit re-analyze is the refresh path).
     const repoId = await upsertRepo(meta);
     if (repoId) {
       const cached = await getCachedAnalysis(repoId, sha);
@@ -69,8 +72,14 @@ export async function* runFastPath(
         const replayed = yield* replayCached(cached.id, cached);
         if (replayed) return;
       }
-      if (!cached) analysisId = await createAnalysis(repoId, sha);
-      else if (cached.status !== "complete") analysisId = cached.id;
+      if (!cached) {
+        const latest = await getLatestCompleteAnalysis(repoId);
+        if (latest?.detection_json) {
+          const replayed = yield* replayCached(latest.id, latest);
+          if (replayed) return;
+        }
+        analysisId = await createAnalysis(repoId, sha);
+      } else if (cached.status !== "complete") analysisId = cached.id;
     }
 
     // Fresh run from here — consume rate-limit quota (02 §11)

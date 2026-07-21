@@ -53,6 +53,27 @@ export async function getCachedAnalysis(
   return (data as CachedAnalysis | null) ?? null;
 }
 
+/**
+ * Latest complete analysis for a repo regardless of commit — served when the
+ * head moved but a bundle already exists, so repos are never re-analyzed
+ * just because of new commits (explicit re-analyze is the only refresh path).
+ */
+export async function getLatestCompleteAnalysis(
+  repoId: string,
+): Promise<CachedAnalysis | null> {
+  const db = getServiceClient();
+  if (!db) return null;
+  const { data } = await db
+    .from("analyses")
+    .select("id,status,detection_json,score_json,duration_detect_ms,created_at")
+    .eq("repo_id", repoId)
+    .eq("status", "complete")
+    .order("created_at", { ascending: false })
+    .limit(1)
+    .maybeSingle();
+  return (data as CachedAnalysis | null) ?? null;
+}
+
 export async function createAnalysis(
   repoId: string,
   commitSha: string,

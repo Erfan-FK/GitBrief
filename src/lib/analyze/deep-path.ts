@@ -4,8 +4,10 @@ import { generateBrief } from "@/lib/generate/brief";
 import {
   writeAgentsMd,
   writeClaudeMd,
+  writeCopilotInstructions,
   writeCursorRules,
   writeIgnore,
+  writeLlmsTxt,
   writeMcpJson,
 } from "@/lib/generate/writers";
 import { validateFile } from "@/lib/validate";
@@ -32,7 +34,9 @@ function sortOrderFor(path: string): number {
   if (path === "AGENTS.md") return 0;
   if (path === "CLAUDE.md") return 1;
   if (path.startsWith(".cursor/rules/")) return 2;
+  if (path === ".github/copilot-instructions.md") return 3;
   if (path.startsWith(".claude/skills/")) return 10; // alpha within
+  if (path === "llms.txt") return 89;
   if (path === ".mcp.json") return 90;
   if (path === ".cursorignore") return 91;
   return 50;
@@ -91,6 +95,11 @@ export async function* runDeepPath(
     { path: "AGENTS.md", raw: writeAgentsMd(brief, facts) },
     { path: "CLAUDE.md", raw: writeClaudeMd(brief, facts) },
     { path: ".cursor/rules/gitbrief.mdc", raw: writeCursorRules(brief, facts) },
+    {
+      path: ".github/copilot-instructions.md",
+      raw: writeCopilotInstructions(brief, facts),
+    },
+    { path: "llms.txt", raw: writeLlmsTxt(brief, facts) },
   ];
 
   for (const { path, raw } of projectFiles) {
@@ -164,8 +173,13 @@ export async function* runDeepPath(
     };
   }
 
-  // 4. Score
-  const score = computeScore(facts, treePaths);
+  // 4. Score (+ repo summary riding along so it persists in score_json)
+  const score: ScoreEvent = {
+    ...computeScore(facts, treePaths),
+    ...(brief.purpose
+      ? { summary: { kind: brief.repo_kind, text: brief.purpose } }
+      : {}),
+  };
   yield { type: "score", data: score };
 
   yield {

@@ -70,6 +70,13 @@ export type BundleFileEvent = z.infer<typeof bundleFileEventSchema>;
 export const scoreEventSchema = z.object({
   total: z.number(),
   band: z.enum(["success", "warning", "destructive"]),
+  /** Repo classification + 3–4 line summary from the CanonicalBrief. */
+  summary: z
+    .object({
+      kind: z.string(),
+      text: z.string(),
+    })
+    .optional(),
   items: z.array(
     z.object({
       key: z.string(),

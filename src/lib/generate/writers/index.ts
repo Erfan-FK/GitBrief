@@ -172,6 +172,61 @@ export function writeClaudeMd(brief: CanonicalBrief, facts: FactSheet): string {
   return lines.length > 120 ? lines.slice(0, 120).join("\n") + "\n" : output;
 }
 
+/**
+ * llms.txt (llmstxt.org): a compact machine-readable index so any LLM tool
+ * can orient in the repo without crawling it.
+ */
+export function writeLlmsTxt(brief: CanonicalBrief, facts: FactSheet): string {
+  const { owner, name, defaultBranch } = {
+    owner: facts.repo.owner,
+    name: facts.repo.name,
+    defaultBranch: facts.repo.defaultBranch,
+  };
+  const blob = (path: string) =>
+    `https://github.com/${owner}/${name}/blob/${defaultBranch}/${path}`;
+
+  const lines = [`# ${owner}/${name}`, "", `> ${brief.purpose.split(/(?<=[.!?])\s+/).slice(0, 2).join(" ")}`];
+
+  const stack = facts.techList
+    .filter((t) => t.version)
+    .slice(0, 8)
+    .map((t) => `${t.name} ${t.version}`)
+    .join(", ");
+  if (stack) lines.push("", `Stack: ${stack}.`);
+
+  if (brief.key_modules.length > 0) {
+    lines.push("", "## Key modules", "");
+    for (const m of brief.key_modules.slice(0, 10)) {
+      const clean = m.path.replace(/\/$/, "");
+      lines.push(`- [${clean}](${blob(clean)}): ${m.role}`);
+    }
+  }
+
+  const commands = Object.entries(brief.commands);
+  if (commands.length > 0) {
+    lines.push("", "## Commands", "");
+    for (const [label, cmd] of commands.slice(0, 10)) {
+      lines.push(`- \`${cmd}\` — ${label}`);
+    }
+  }
+
+  lines.push("", "## Docs", "", `- [README](${blob("README.md")}): project overview`);
+  return lines.join("\n") + "\n";
+}
+
+/** GitHub Copilot instructions — same canonical brief, Copilot's file name. */
+export function writeCopilotInstructions(
+  brief: CanonicalBrief,
+  facts: FactSheet,
+): string {
+  const body = writeClaudeMd(brief, facts)
+    .split("\n")
+    .slice(2) // drop the CLAUDE.md h1
+    .join("\n")
+    .replace(" Full brief: AGENTS.md.", " Full brief: AGENTS.md (repo root).");
+  return `# Copilot instructions — ${facts.repo.owner}/${facts.repo.name}\n${body}`;
+}
+
 export function writeCursorRules(
   brief: CanonicalBrief,
   facts: FactSheet,

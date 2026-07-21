@@ -8,7 +8,7 @@ const FOOTER_LINKS = [
   { href: LINKS.github, label: "GitHub", external: true },
   { href: LINKS.x, label: "X", external: true },
   { href: "/privacy", label: "Privacy", external: false },
-  { href: LINKS.contact, label: "Contact", external: false },
+  { href: LINKS.contact, label: "Contact", external: true },
 ] as const;
 
 export function Footer() {

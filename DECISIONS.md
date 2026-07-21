@@ -34,3 +34,6 @@ Deviations from plan/00–04 specs, one line each with reason.
 - Depth v2: skill generation runs thinking-disabled, max_tokens 4500, 3-lane bounded concurrency — full-parallel fan-out dropped connections behind constrained networks and blew the wall clock (measured 76–147s/skill with thinking, 28–80s without).
 - Depth v2: SSE job budget 120s → 300s (02 §11) — deep path now writes a brief + up to 10 grounded skills; measured taxonomy full run ≈ 3 min.
 - Dev: Node fetch ignores HTTP(S)_PROXY; behind a local proxy/VPN the shared `anthropicClient()` hands the SDK undici's fetch + EnvHttpProxyAgent (same-build pairing required). No-op when proxy env absent.
+- Product pass: cache-first serving — exact repo@head_sha hit first, else latest complete analysis replays (new commits never auto re-analyze; explicit re-analyze is the only refresh path).
+- Product pass: CanonicalBrief gained repo_kind (frontend/backend/fullstack/library/cli/…); summary {kind, purpose} rides on the score event so it persists in score_json with zero migration.
+- Product pass: bundle grew llms.txt (llmstxt.org index) and .github/copilot-instructions.md — both deterministic renders of the existing brief, no extra LLM calls.

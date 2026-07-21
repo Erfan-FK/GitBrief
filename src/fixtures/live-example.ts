@@ -96,14 +96,23 @@ export interface GalleryEntry {
   stack: string[]; // simple-icons slugs handled in gallery component
 }
 
-/** Fixture gallery until M5 backs it with the DB (01 §9). */
+/** Fixture gallery until M5 backs it with the DB (01 §9). Two marquee rows —
+ * mix of household names and smaller repos so the wall feels alive. */
 export const GALLERY_FIXTURE: GalleryEntry[] = [
   { repo: "vercel/ai", score: 86, stack: ["typescript", "react", "nextdotjs", "vitest"] },
   { repo: "shadcn-ui/ui", score: 91, stack: ["react", "tailwindcss", "typescript", "radixui"] },
   { repo: "supabase/supabase", score: 84, stack: ["typescript", "postgresql", "react", "docker"] },
   { repo: "vercel/next.js", score: 88, stack: ["react", "typescript", "turbo", "rust"] },
+  { repo: "shadcn-ui/taxonomy", score: 76, stack: ["nextdotjs", "typescript", "tailwindcss", "react"] },
+  { repo: "colinhacks/zod", score: 83, stack: ["typescript", "vitest"] },
+  { repo: "TanStack/query", score: 85, stack: ["typescript", "react", "vite"] },
+  { repo: "hono/hono", score: 82, stack: ["typescript", "vitest"] },
   { repo: "fastapi/fastapi", score: 78, stack: ["python", "pydantic", "starlette"] },
   { repo: "gin-gonic/gin", score: 74, stack: ["go"] },
   { repo: "excalidraw/excalidraw", score: 71, stack: ["react", "typescript", "vite"] },
   { repo: "langchain-ai/langchain", score: 62, stack: ["python", "pydantic"] },
+  { repo: "pallets/flask", score: 72, stack: ["python"] },
+  { repo: "tokio-rs/axum", score: 79, stack: ["rust"] },
+  { repo: "drizzle-team/drizzle-orm", score: 81, stack: ["typescript", "postgresql"] },
+  { repo: "withastro/astro", score: 87, stack: ["typescript", "vite", "react"] },
 ];

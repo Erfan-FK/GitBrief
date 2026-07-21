@@ -10,7 +10,23 @@ import type { FactSheet } from "@/lib/generate/factsheet";
  * (Claude Code memory guidance): purpose/how-it-works carry the repo
  * explanation, key_modules carry the code map, conventions carry the rules.
  */
+export const REPO_KINDS = [
+  "frontend",
+  "backend",
+  "fullstack",
+  "library",
+  "cli",
+  "mobile",
+  "data-ml",
+  "devops",
+  "docs",
+  "other",
+] as const;
+export type RepoKind = (typeof REPO_KINDS)[number];
+
 export const canonicalBriefSchema = z.object({
+  /** What kind of repo this is — drives the results-page summary badge. */
+  repo_kind: z.enum(REPO_KINDS),
   /** What the project IS and DOES — concrete domain terms, 2–5 sentences. */
   purpose: z.string(),
   /** Runtime story end-to-end: input → processing → output, 3–8 sentences. */
@@ -44,6 +60,7 @@ export type CanonicalBrief = z.infer<typeof canonicalBriefSchema>;
  * - no `.max()` caps (unsupported array constraint — enforced by slicing)
  */
 const wireSchema = z.object({
+  repo_kind: z.enum(REPO_KINDS),
   purpose: z.string(),
   how_it_works: z.string(),
   architecture_notes: z.array(z.object({ note: z.string(), evidence: z.string() })),
@@ -62,6 +79,7 @@ function wireToBrief(wire: z.infer<typeof wireSchema>): CanonicalBrief {
   const commands: Record<string, string> = {};
   for (const entry of wire.commands) commands[entry.name] = entry.command;
   return {
+    repo_kind: wire.repo_kind,
     purpose: wire.purpose,
     how_it_works: wire.how_it_works,
     architecture_notes: wire.architecture_notes.slice(0, 8),
@@ -91,7 +109,8 @@ HARD RULES:
 (5) conventions: only patterns actually visible in the sampled code or configs (naming, error handling, typing, imports, test style). Skip standard language defaults.
 (6) structure_highlights descriptions must be non-empty and informative.
 (7) No marketing language. No restating the obvious ("this is a JavaScript project").
-(8) commands: one entry per useful command; "command" is the exact invocation (from scriptsMap with the right package-manager prefix, or Makefile/justfile targets), "name" is a short label.`;
+(8) commands: one entry per useful command; "command" is the exact invocation (from scriptsMap with the right package-manager prefix, or Makefile/justfile targets), "name" is a short label.
+(9) repo_kind: classify what this repository IS — "frontend" (UI app, no meaningful server), "backend" (API/service, no UI), "fullstack" (both), "library" (published package/SDK consumed by other code), "cli" (command-line tool), "mobile", "data-ml" (data pipelines, notebooks, models), "devops" (infra, CI tooling, configs), "docs", or "other". Judge from the sampled source and structure, not the README's framing.`;
 
 const RUN_PREFIX: Record<string, string> = {
   pnpm: "pnpm",
@@ -129,7 +148,20 @@ export function deterministicBrief(facts: FactSheet): CanonicalBrief {
     .map((p) => p.replace(/^#+\s*/gm, "").trim())
     .find((p) => p.length > 40 && !p.startsWith("!") && !p.startsWith("["));
 
+  // Heuristic kind guess for the LLM-free floor.
+  const categories = new Set(facts.techList.map((t) => t.category));
+  const kind: CanonicalBrief["repo_kind"] = categories.has("framework")
+    ? categories.has("database")
+      ? "fullstack"
+      : "frontend"
+    : categories.has("database")
+      ? "backend"
+      : facts.repo.primaryLanguage
+        ? "library"
+        : "other";
+
   return {
+    repo_kind: kind,
     purpose:
       (readmeLead ? `${readmeLead.slice(0, 400)} ` : "") +
       `${facts.repo.owner}/${facts.repo.name}` +
